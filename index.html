@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>autosplat viewer — 3D Gaussian Splats im Browser</title>
+  <meta name="description" content="Trainierte 3D Gaussian Splats direkt im Browser ansehen. Showcase der autosplat-Pipeline.">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "playcanvas": "https://cdn.jsdelivr.net/npm/playcanvas@VERSION/+esm"
+    }
+  }
+  </script>
+</head>
+<body>
+  <main>
+    <section id="stage">
+      <div id="canvas-host"></div>
+      <div id="hero-overlay">
+        <h1>Drohnen-Video → 3D Gaussian Splat</h1>
+        <p>Trainierte Splats, direkt im Browser. Lokal gerendert — nichts wird hochgeladen.</p>
+        <div class="cta-row">
+          <button id="btn-load" type="button">Eigenen Splat laden</button>
+          <a class="btn-secondary" href="#about">Was ist autosplat?</a>
+        </div>
+      </div>
+      <div id="stage-controls">
+        <button id="btn-orbit" type="button" aria-pressed="true">Auto-Orbit: an</button>
+        <button id="btn-reset" type="button">Demo zurücksetzen</button>
+      </div>
+      <div id="drop-hint" hidden>Splat-Datei hier ablegen</div>
+      <div id="viewer-error" role="alert" hidden></div>
+      <input id="file-input" type="file" accept=".sog,.ply" hidden>
+    </section>
+
+    <section id="about">
+      <h2>Was ist autosplat?</h2>
+      <p>
+        autosplat ist eine lokale Pipeline, die Drohnen- oder Handvideo in
+        trainierte 3D Gaussian Splats verwandelt: Frame-Extraktion, COLMAP
+        Structure-from-Motion, Quality-Gate, Brush-Training, Kompression.
+        Alles lokal auf Apple Silicon, ohne Cloud.
+      </p>
+      <ol id="pipeline-flow">
+        <li>Video</li><li>Frames</li><li>COLMAP SfM</li>
+        <li>Brush-Training</li><li>Gaussian Splat</li>
+      </ol>
+      <p>
+        <a href="https://codeberg.org/jkaindl/video-to-3d-gaussian-splat">
+          autosplat auf Codeberg →</a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <a href="https://codeberg.org/jkaindl/video-to-3d-gaussian-splat">autosplat</a>
+    <span>·</span>
+    <a href="LICENSE">AGPL-3.0</a>
+    <span>·</span>
+    <span>powered by PlayCanvas</span>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

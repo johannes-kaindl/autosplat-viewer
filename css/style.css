@@ -1,0 +1,59 @@
+:root {
+  --bg: #0e0f13;
+  --fg: #e8e9ee;
+  --muted: #9aa0ab;
+  --accent: #6080ff;
+  --panel: rgba(14, 15, 19, 0.72);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--fg);
+  font-family: system-ui, -apple-system, sans-serif; }
+
+#stage { position: relative; width: 100%; height: 82vh; overflow: hidden; }
+#canvas-host { position: absolute; inset: 0; }
+#canvas-host canvas { width: 100%; height: 100%; display: block; }
+
+#hero-overlay { position: absolute; left: 5vw; bottom: 8vh; max-width: 30rem;
+  background: var(--panel); padding: 1.5rem; border-radius: 10px;
+  backdrop-filter: blur(8px); }
+#hero-overlay h1 { font-size: 1.9rem; line-height: 1.15; }
+#hero-overlay p { color: var(--muted); margin: 0.6rem 0 1rem; }
+
+.cta-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+button, .btn-secondary { font: inherit; padding: 0.6rem 1rem; border-radius: 7px;
+  border: 1px solid var(--accent); cursor: pointer; text-decoration: none; }
+button#btn-load, button { background: var(--accent); color: #fff; }
+.btn-secondary { background: transparent; color: var(--fg); }
+
+#stage-controls { position: absolute; right: 1rem; top: 1rem;
+  display: flex; gap: 0.5rem; }
+#stage-controls button { background: var(--panel); color: var(--fg);
+  border-color: rgba(255,255,255,0.2); font-size: 0.85rem; }
+
+#drop-hint { position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center; font-size: 1.4rem;
+  background: rgba(96,128,255,0.25); border: 3px dashed var(--accent); }
+#viewer-error { position: absolute; left: 50%; top: 1rem;
+  transform: translateX(-50%); background: #5a1f1f; color: #ffd9d9;
+  padding: 0.6rem 1rem; border-radius: 7px; }
+
+#about { max-width: 48rem; margin: 0 auto; padding: 4rem 1.5rem; }
+#about h2 { font-size: 1.5rem; margin-bottom: 0.8rem; }
+#about p { color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+#pipeline-flow { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem;
+  margin: 1.2rem 0; }
+#pipeline-flow li { background: #1a1c24; padding: 0.4rem 0.8rem;
+  border-radius: 6px; font-size: 0.85rem; }
+#pipeline-flow li + li::before { content: "→"; color: var(--accent);
+  margin-right: 0.5rem; margin-left: -0.3rem; }
+#about a { color: var(--accent); }
+
+footer { display: flex; gap: 0.6rem; justify-content: center;
+  padding: 2rem 1rem; color: var(--muted); font-size: 0.85rem;
+  border-top: 1px solid #1a1c24; }
+footer a { color: var(--muted); }
+
+@media (max-width: 600px) {
+  #stage { height: 70vh; }
+  #hero-overlay { left: 3vw; right: 3vw; max-width: none; }
+}
