@@ -30,7 +30,7 @@ export function createViewer(hostElement) {
       'style="width:100%;height:100%;object-fit:cover">' +
       '<p style="position:absolute;left:0;right:0;bottom:0;margin:0;' +
       'padding:0.8rem;text-align:center;background:rgba(14,15,19,0.85)">' +
-      'Dein Browser unterstützt kein WebGL2 — hier ein Standbild.</p>';
+      'Your browser does not support WebGL2 — showing a still image.</p>';
     return {
       loadSplat: () => {}, setAutoOrbit: () => {},
       isAutoOrbit: () => false, unsupported: true

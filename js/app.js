@@ -23,7 +23,7 @@ async function load(source, filename) {
   try {
     await viewer.loadSplat(source, filename);
   } catch {
-    showError('Konnte die Datei nicht laden — unterstützt: .ply');
+    showError('Could not load the file — supported format: .ply');
   } finally {
     spinner.hidden = true;
   }
@@ -31,9 +31,9 @@ async function load(source, filename) {
 
 function syncOrbitButton() {
   const on = viewer.isAutoOrbit();
-  btnOrbit.textContent = on ? '⏸ Auto-Orbit' : '▶ Auto-Orbit';
+  btnOrbit.textContent = on ? '⏸ Auto-orbit' : '▶ Auto-orbit';
   btnOrbit.setAttribute('aria-pressed', String(on));
-  btnOrbit.setAttribute('aria-label', on ? 'Auto-Orbit pausieren' : 'Auto-Orbit starten');
+  btnOrbit.setAttribute('aria-label', on ? 'Pause auto-orbit' : 'Start auto-orbit');
 }
 
 btnOrbit.addEventListener('click', () => {
@@ -65,7 +65,7 @@ initDropzone({
   openButton: document.getElementById('btn-load'),
   onFile: (file, badName) => {
     if (file) load(file);
-    else showError(`Nicht unterstützt: ${badName} — erlaubt ist .ply`);
+    else showError(`Unsupported: ${badName} — only .ply is allowed`);
   }
 });
 

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>autosplat viewer — 3D Gaussian Splats im Browser</title>
-  <meta name="description" content="Trainierte 3D Gaussian Splats direkt im Browser ansehen. Showcase der autosplat-Pipeline.">
+  <title>autosplat viewer — 3D Gaussian Splats in the browser</title>
+  <meta name="description" content="View trained 3D Gaussian Splats directly in your browser. A showcase for the autosplat pipeline.">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0e0f13">
   <meta property="og:title" content="autosplat viewer">
-  <meta property="og:description" content="3D Gaussian Splats im Browser ansehen">
+  <meta property="og:description" content="View 3D Gaussian Splats in the browser">
   <meta property="og:image" content="assets/og-image.jpg">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="css/style.css">
@@ -25,48 +25,50 @@
     <section id="stage">
       <div id="canvas-host"></div>
       <div id="hero-overlay">
-        <h1>Drohnen-Video → 3D Gaussian Splat</h1>
-        <p>Trainierte Splats, direkt im Browser. Lokal gerendert — nichts wird hochgeladen.</p>
+        <h1>Drone video → 3D Gaussian Splat</h1>
+        <p>Trained splats, right in your browser. Rendered locally — nothing is uploaded.</p>
         <div class="cta-row">
-          <button id="btn-load" type="button">Eigenen Splat laden</button>
-          <a class="btn-secondary" href="#about">Was ist autosplat?</a>
+          <button id="btn-load" type="button">Load your own splat</button>
+          <a class="btn-secondary" href="#about">What is autosplat?</a>
         </div>
       </div>
       <div id="stage-controls">
         <button id="btn-orbit" type="button" aria-pressed="true"
-                aria-label="Auto-Orbit pausieren">⏸ Auto-Orbit</button>
+                aria-label="Pause auto-orbit">⏸ Auto-orbit</button>
         <button id="btn-reset" type="button">↺ Demo</button>
-        <button id="btn-fullscreen" type="button" aria-label="Vollbild">⛶ Vollbild</button>
+        <button id="btn-fullscreen" type="button" aria-label="Fullscreen">⛶ Fullscreen</button>
       </div>
-      <div id="drop-hint" hidden>Splat-Datei hier ablegen</div>
+      <div id="drop-hint" hidden>Drop a splat file here</div>
       <div id="viewer-error" role="alert" hidden></div>
-      <div id="viewer-spinner" hidden>Lädt…</div>
+      <div id="viewer-spinner" hidden>Loading…</div>
       <input id="file-input" type="file" accept=".ply" hidden>
     </section>
 
     <section id="about">
-      <h2>Was ist autosplat?</h2>
+      <h2>What is autosplat?</h2>
       <p>
-        autosplat ist eine lokale Pipeline, die Drohnen- oder Handvideo in
-        trainierte 3D Gaussian Splats verwandelt: Frame-Extraktion, COLMAP
-        Structure-from-Motion, Quality-Gate, Brush-Training, Kompression.
-        Alles lokal auf Apple Silicon, ohne Cloud.
+        autosplat is a local pipeline that turns drone or handheld video into
+        trained 3D Gaussian Splats: frame extraction, COLMAP structure-from-motion,
+        quality gating, Brush training, compression. Everything runs locally on
+        Apple Silicon — no cloud.
       </p>
       <ol id="pipeline-flow">
         <li>Video</li><li>Frames</li><li>COLMAP SfM</li>
-        <li>Brush-Training</li><li>Gaussian Splat</li>
+        <li>Brush training</li><li>Gaussian Splat</li>
       </ol>
       <p>
         <a href="https://codeberg.org/jkaindl/video-to-3d-gaussian-splat">
-          autosplat auf Codeberg →</a>
+          autosplat on Codeberg →</a>
       </p>
     </section>
   </main>
 
   <footer>
-    <a href="https://codeberg.org/jkaindl/video-to-3d-gaussian-splat">autosplat</a>
+    <a href="https://codeberg.org/jkaindl/autosplat-viewer">Source</a>
     <span>·</span>
     <a href="LICENSE">AGPL-3.0</a>
+    <span>·</span>
+    <a href="https://codeberg.org/jkaindl/video-to-3d-gaussian-splat">autosplat pipeline</a>
     <span>·</span>
     <span>powered by PlayCanvas</span>
   </footer>

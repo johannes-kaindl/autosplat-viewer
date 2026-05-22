@@ -1,7 +1,7 @@
 {
   "name": "autosplat viewer",
   "short_name": "autosplat",
-  "description": "3D Gaussian Splats im Browser ansehen",
+  "description": "View 3D Gaussian Splats in the browser",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
