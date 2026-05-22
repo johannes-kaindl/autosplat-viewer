@@ -26,10 +26,17 @@ A real http origin is required — Service Workers do not run on `file://`.
 
 ## Deployment — Codeberg Pages
 
-Codeberg serves this repo's `main` branch at
+Codeberg Pages serves the `pages` branch of this repo at
 `https://jkaindl.codeberg.page/autosplat-viewer/`. The site is fully
-static; pushing to `main` updates the live site. All asset paths are
-relative, so the site works under the `/autosplat-viewer/` sub-path.
+static — update the live site with:
+
+```bash
+git push origin main         # development branch
+git push origin main:pages   # publish to the pages branch
+```
+
+All asset paths are relative, so the site works under the
+`/autosplat-viewer/` sub-path.
 
 ## Tech
 
