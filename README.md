@@ -8,11 +8,34 @@ Renders `.sog` and `.ply` splats in the browser via the PlayCanvas
 Engine. No build step, no server, no upload — drag a splat onto the
 page and it renders locally.
 
+## Features
+
+- Live Gaussian-Splat rendering with auto-orbit
+- Orbit / pan / zoom camera (left-drag, right-drag, wheel)
+- Drag-and-drop or file-picker for your own `.sog` / `.ply` splats
+- Installable PWA, offline-capable app shell
+- WebGL2 fallback to a still image
+
 ## Local development
 
 ```bash
 ./serve.sh        # → http://localhost:8123/
 ```
+
+A real http origin is required — Service Workers do not run on `file://`.
+
+## Deployment — Codeberg Pages
+
+Codeberg serves this repo's `main` branch at
+`https://jkaindl.codeberg.page/autosplat-viewer/`. The site is fully
+static; pushing to `main` updates the live site. All asset paths are
+relative, so the site works under the `/autosplat-viewer/` sub-path.
+
+## Tech
+
+Vanilla HTML/CSS/JS (ES modules), no build step. PlayCanvas Engine
+loaded at runtime from the jsDelivr CDN. PWA: installable, offline
+app shell.
 
 ## License
 
