@@ -47,6 +47,17 @@ btnReset.addEventListener('click', async () => {
   syncOrbitButton();
 });
 
+const stage = document.getElementById('stage');
+document.getElementById('btn-fullscreen').addEventListener('click', () => {
+  const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fsEl) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else {
+    const result = (stage.requestFullscreen || stage.webkitRequestFullscreen).call(stage);
+    if (result && result.catch) result.catch(() => {});
+  }
+});
+
 initDropzone({
   stage: document.getElementById('stage'),
   hint: document.getElementById('drop-hint'),
