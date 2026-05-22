@@ -31,8 +31,9 @@ async function load(source, filename) {
 
 function syncOrbitButton() {
   const on = viewer.isAutoOrbit();
-  btnOrbit.textContent = `Auto-Orbit: ${on ? 'an' : 'aus'}`;
+  btnOrbit.textContent = on ? '⏸ Auto-Orbit' : '▶ Auto-Orbit';
   btnOrbit.setAttribute('aria-pressed', String(on));
+  btnOrbit.setAttribute('aria-label', on ? 'Auto-Orbit pausieren' : 'Auto-Orbit starten');
 }
 
 btnOrbit.addEventListener('click', () => {

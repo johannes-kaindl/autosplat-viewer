@@ -1,5 +1,5 @@
-const SHELL = 'autosplat-shell-v1';
-const RUNTIME = 'autosplat-runtime-v1';
+const SHELL = 'autosplat-shell-v2';
+const RUNTIME = 'autosplat-runtime-v2';
 const SHELL_FILES = [
   './', './index.html', './css/style.css',
   './js/app.js', './js/viewer.js', './js/dropzone.js',
@@ -21,19 +21,29 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  const url = new URL(req.url);
 
+  // same-origin app shell: network-first, so deploys show up on reload;
+  // the cached copy is the offline fallback
+  if (url.origin === location.origin) {
+    e.respondWith((async () => {
+      try {
+        const res = await fetch(req);
+        if (res.ok) (await caches.open(SHELL)).put(req, res.clone());
+        return res;
+      } catch {
+        const cached = await caches.match(req, { ignoreSearch: true });
+        return cached || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // cross-origin (CDN engine): stale-while-revalidate
   e.respondWith((async () => {
-    // app shell: cache-first
-    const shellHit = await caches.match(req, { ignoreSearch: true });
-    if (shellHit) return shellHit;
-
-    // runtime cache (CDN engine, demo splat): stale-while-revalidate
     const cached = await caches.open(RUNTIME).then(c => c.match(req));
     const network = fetch(req).then(async (res) => {
-      if (res.ok) {
-        const cache = await caches.open(RUNTIME);
-        cache.put(req, res.clone());
-      }
+      if (res.ok) (await caches.open(RUNTIME)).put(req, res.clone());
       return res;
     }).catch(() => cached);
     return cached || network;

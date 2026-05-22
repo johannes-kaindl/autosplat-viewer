@@ -27,10 +27,12 @@ button, .btn-secondary { font: inherit; padding: 0.6rem 1rem; border-radius: 7px
 button#btn-load, button { background: var(--accent); color: #fff; }
 .btn-secondary { background: transparent; color: var(--fg); }
 
-#stage-controls { position: absolute; right: 1rem; top: 1rem;
-  display: flex; gap: 0.5rem; }
+#stage-controls { position: absolute; left: 50%; bottom: 1.5rem;
+  transform: translateX(-50%); display: flex; gap: 0.6rem; z-index: 5; }
 #stage-controls button { background: var(--panel); color: var(--fg);
-  border-color: rgba(255,255,255,0.2); font-size: 0.85rem; }
+  border: 1px solid rgba(255,255,255,0.25); font-size: 1rem; font-weight: 500;
+  padding: 0.7rem 1.3rem; border-radius: 999px; backdrop-filter: blur(8px); }
+#stage-controls button:hover { border-color: var(--accent); }
 
 #drop-hint { position: absolute; inset: 0; display: flex;
   align-items: center; justify-content: center; font-size: 1.4rem;
@@ -61,4 +63,5 @@ footer a { color: var(--muted); }
 @media (max-width: 600px) {
   #stage { height: 70vh; }
   #hero-overlay { left: 3vw; right: 3vw; max-width: none; }
+  #stage-controls { bottom: auto; top: 1rem; }
 }
