@@ -24,6 +24,19 @@ const DEFAULT_POSE = {
 };
 
 export function createViewer(hostElement) {
+  if (!document.createElement('canvas').getContext('webgl2')) {
+    hostElement.innerHTML =
+      '<img src="assets/og-image.jpg" alt="3D Gaussian Splat" ' +
+      'style="width:100%;height:100%;object-fit:cover">' +
+      '<p style="position:absolute;left:0;right:0;bottom:0;margin:0;' +
+      'padding:0.8rem;text-align:center;background:rgba(14,15,19,0.85)">' +
+      'Dein Browser unterstützt kein WebGL2 — hier ein Standbild.</p>';
+    return {
+      loadSplat: () => {}, setAutoOrbit: () => {},
+      isAutoOrbit: () => false, unsupported: true
+    };
+  }
+
   const canvas = document.createElement('canvas');
   hostElement.appendChild(canvas);
 
@@ -83,9 +96,12 @@ export function createViewer(hostElement) {
         app.assets.add(asset);
         app.assets.load(asset);
       });
-    } finally {
+    } catch {
       if (revoke) URL.revokeObjectURL(revoke);
+      asset.unload();
+      throw new Error('splat-load-failed');
     }
+    if (revoke) URL.revokeObjectURL(revoke);
 
     if (splatPivot) splatPivot.destroy();
     splatPivot = new Entity('splat-pivot');
@@ -104,6 +120,7 @@ export function createViewer(hostElement) {
   return {
     loadSplat,
     setAutoOrbit(on) { autoOrbit = on; },
-    isAutoOrbit() { return autoOrbit; }
+    isAutoOrbit() { return autoOrbit; },
+    unsupported: false
   };
 }

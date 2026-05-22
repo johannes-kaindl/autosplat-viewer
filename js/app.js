@@ -3,11 +3,31 @@ import { initDropzone } from './dropzone.js';
 
 const DEMO_URL = 'assets/demo/scene.sog';
 
+const errorBox = document.getElementById('viewer-error');
+const spinner = document.getElementById('viewer-spinner');
 const viewer = createViewer(document.getElementById('canvas-host'));
-viewer.loadSplat(DEMO_URL, 'scene.sog');
 
 const btnOrbit = document.getElementById('btn-orbit');
 const btnReset = document.getElementById('btn-reset');
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.hidden = false;
+  setTimeout(() => { errorBox.hidden = true; }, 5000);
+}
+
+async function load(source, filename) {
+  if (viewer.unsupported) return;
+  errorBox.hidden = true;
+  spinner.hidden = false;
+  try {
+    await viewer.loadSplat(source, filename);
+  } catch {
+    showError('Konnte die Datei nicht laden — unterstützt: .sog, .ply');
+  } finally {
+    spinner.hidden = true;
+  }
+}
 
 function syncOrbitButton() {
   const on = viewer.isAutoOrbit();
@@ -19,12 +39,10 @@ btnOrbit.addEventListener('click', () => {
   viewer.setAutoOrbit(!viewer.isAutoOrbit());
   syncOrbitButton();
 });
-
-// the canvas pauses auto-orbit on interaction — keep the button label in sync
 setInterval(syncOrbitButton, 500);
 
-btnReset.addEventListener('click', () => {
-  viewer.loadSplat(DEMO_URL, 'scene.sog');
+btnReset.addEventListener('click', async () => {
+  await load(DEMO_URL, 'scene.sog');
   viewer.setAutoOrbit(true);
   syncOrbitButton();
 });
@@ -34,7 +52,10 @@ initDropzone({
   hint: document.getElementById('drop-hint'),
   fileInput: document.getElementById('file-input'),
   openButton: document.getElementById('btn-load'),
-  onFile: (file) => {
-    if (file) viewer.loadSplat(file);
+  onFile: (file, badName) => {
+    if (file) load(file);
+    else showError(`Nicht unterstützt: ${badName} — erlaubt sind .sog und .ply`);
   }
 });
+
+load(DEMO_URL, 'scene.sog');

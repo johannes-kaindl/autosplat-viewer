@@ -38,6 +38,9 @@ button#btn-load, button { background: var(--accent); color: #fff; }
 #viewer-error { position: absolute; left: 50%; top: 1rem;
   transform: translateX(-50%); background: #5a1f1f; color: #ffd9d9;
   padding: 0.6rem 1rem; border-radius: 7px; }
+#viewer-spinner { position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); background: var(--panel);
+  padding: 0.6rem 1.2rem; border-radius: 7px; color: var(--fg); }
 
 #about { max-width: 48rem; margin: 0 auto; padding: 4rem 1.5rem; }
 #about h2 { font-size: 1.5rem; margin-bottom: 0.8rem; }
