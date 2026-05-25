@@ -1,3 +1,5 @@
 .DS_Store
 *.swp
 .superpowers/
+tests/node_modules/
+tests/package-lock.json
