@@ -13,29 +13,31 @@ function flat(...pts) {
   return f;
 }
 
-test('buildHeightmap: empty positions → all -Infinity', () => {
+test('buildHeightmap: empty positions → all Infinity', () => {
   const hm = buildHeightmap(new Float32Array(0), bounds10, 4);
   assert.equal(hm.resolution, 4);
   assert.equal(hm.grid.length, 16);
-  for (const v of hm.grid) assert.equal(v, -Infinity);
+  for (const v of hm.grid) assert.equal(v, Infinity);
 });
 
 test('buildHeightmap: single point lands in correct cell with its y', () => {
   // point at x=5,y=2,z=5 with res=10 → cell (5,5)
   const hm = buildHeightmap(flat(5, 2, 5), bounds10, 10);
   assert.equal(hm.grid[5 * 10 + 5], 2);
-  // a neighbor cell stays -Infinity
-  assert.equal(hm.grid[0], -Infinity);
+  // a neighbor cell stays Infinity
+  assert.equal(hm.grid[0], Infinity);
 });
 
-test('buildHeightmap: multiple points in same cell → max y wins', () => {
+test('buildHeightmap: multiple points in same cell → min y wins (ground level)', () => {
+  // MIN-pool: lowest Y per cell, so a tree-top splat doesn't make us walk on
+  // air. The lowest of 1, 3, 2 is 1.
   const hm = buildHeightmap(flat(5, 1, 5, 5, 3, 5, 5, 2, 5), bounds10, 10);
-  assert.equal(hm.grid[5 * 10 + 5], 3);
+  assert.equal(hm.grid[5 * 10 + 5], 1);
 });
 
 test('buildHeightmap: out-of-bounds points are silently dropped', () => {
   const hm = buildHeightmap(flat(-1, 99, -1, 100, 99, 100), bounds10, 10);
-  for (const v of hm.grid) assert.equal(v, -Infinity);
+  for (const v of hm.grid) assert.equal(v, Infinity);
 });
 
 test('buildHeightmap: custom resolution respected', () => {
@@ -64,9 +66,9 @@ test('smoothHeightmap: 3×3 box filter averages defined neighbors', () => {
   assert.equal(sm.grid[0], 1);  // corners average over fewer neighbors but all = 1
 });
 
-test('smoothHeightmap: -Infinity cells are excluded from the average', () => {
+test('smoothHeightmap: Infinity cells are excluded from the average', () => {
   // grid: center=2, all surrounding cells = -Inf → center smooth = 2 (only itself counts)
-  const grid = new Float32Array(9).fill(-Infinity);
+  const grid = new Float32Array(9).fill(Infinity);
   grid[1 * 3 + 1] = 2;
   const sm = smoothHeightmap({ grid, resolution: 3 });
   assert.equal(sm.grid[1 * 3 + 1], 2);
@@ -74,11 +76,11 @@ test('smoothHeightmap: -Infinity cells are excluded from the average', () => {
   assert.equal(sm.grid[0 * 3 + 1], 2);
 });
 
-test('smoothHeightmap: cell with no defined neighbors stays -Infinity', () => {
+test('smoothHeightmap: cell with no defined neighbors stays Infinity', () => {
   // all -Inf → stays -Inf
-  const grid = new Float32Array(9).fill(-Infinity);
+  const grid = new Float32Array(9).fill(Infinity);
   const sm = smoothHeightmap({ grid, resolution: 3 });
-  for (const v of sm.grid) assert.equal(v, -Infinity);
+  for (const v of sm.grid) assert.equal(v, Infinity);
 });
 
 test('sampleHeightmap: returns exact value at cell center', () => {
@@ -101,25 +103,25 @@ test('sampleHeightmap: bilinear interpolation between two cells', () => {
   assert.equal(y, 5);
 });
 
-test('sampleHeightmap: any -Infinity corner → returns -Infinity', () => {
+test('sampleHeightmap: any Infinity corner → returns Infinity', () => {
   const grid = new Float32Array(100).fill(0);
   grid[5 * 10 + 5] = 1;
-  grid[5 * 10 + 6] = -Infinity;
+  grid[5 * 10 + 6] = Infinity;
   grid[6 * 10 + 5] = 1;
   grid[6 * 10 + 6] = 1;
   const hm = { grid, resolution: 10 };
   // sample in the cell that overlaps the -Inf corner
   const y = sampleHeightmap(hm, bounds10, 6.0, 6.0);
-  assert.equal(y, -Infinity);
+  assert.equal(y, Infinity);
 });
 
-test('sampleHeightmap: out-of-bounds returns -Infinity', () => {
+test('sampleHeightmap: out-of-bounds returns Infinity', () => {
   const grid = new Float32Array(100).fill(5);
   const hm = { grid, resolution: 10 };
-  assert.equal(sampleHeightmap(hm, bounds10, -1, 5), -Infinity);
-  assert.equal(sampleHeightmap(hm, bounds10, 5, -1), -Infinity);
-  assert.equal(sampleHeightmap(hm, bounds10, 11, 5), -Infinity);
-  assert.equal(sampleHeightmap(hm, bounds10, 5, 11), -Infinity);
+  assert.equal(sampleHeightmap(hm, bounds10, -1, 5), Infinity);
+  assert.equal(sampleHeightmap(hm, bounds10, 5, -1), Infinity);
+  assert.equal(sampleHeightmap(hm, bounds10, 11, 5), Infinity);
+  assert.equal(sampleHeightmap(hm, bounds10, 5, 11), Infinity);
 });
 
 test('buildHeightmap: handles 1M points performantly (<200ms)', () => {
@@ -137,7 +139,7 @@ test('buildHeightmap: handles 1M points performantly (<200ms)', () => {
   assert.equal(hm.resolution, 128);
   // sanity: every cell should have at least one point at 1M density
   let defined = 0;
-  for (const v of hm.grid) if (v !== -Infinity) defined++;
+  for (const v of hm.grid) if (v !== Infinity) defined++;
   assert.ok(defined > 0.95 * hm.grid.length, `${defined}/${hm.grid.length} cells defined`);
   assert.ok(dt < 200, `took ${dt.toFixed(1)}ms`);
 });

@@ -12,7 +12,10 @@
 
 import { Quat, Vec3 } from 'playcanvas';
 
-import { buildHeightmap, smoothHeightmap, sampleHeightmap } from './heightmap.js';
+import {
+  buildHeightmap, buildMedianHeightmap, smoothHeightmap, sampleHeightmap,
+  robustBounds,
+} from './heightmap.js';
 
 const LOOK_SENSITIVITY = 0.0022;  // radians per pixel of mouse movement
 const PITCH_LIMIT = Math.PI / 2 - 0.05;
@@ -35,8 +38,15 @@ export function heightmapFromSplat(splatEntity, splatPivot, resolution = 128) {
   const positions = extractSplatPositions(splatEntity);
   if (positions && positions.length > 0) {
     const world = transformPositions(positions, root);
-    const bounds = boundsFromPositions(world);
-    const raw = buildHeightmap(world, bounds, resolution);
+    // Outlier-resistant bounds — Y is clamped to [2nd, 98th] percentile so a
+    // few sky-splats or subterranean noise don't blow up yExtent (and with it
+    // the auto-eye-offset). X/Z keep their full extents so we can still walk
+    // to the edges of the captured scene.
+    const bounds = robustBounds(world);
+    if (!bounds) return null;
+    // Median per cell, biased toward the lower quartile, is much more
+    // forgiving on real-world splats than MIN/MAX pooling.
+    const raw = buildMedianHeightmap(world, bounds, resolution);
     const smooth = smoothHeightmap(raw);
     return { heightmap: smooth, bounds, source: 'splat' };
   }
@@ -46,6 +56,9 @@ export function heightmapFromSplat(splatEntity, splatPivot, resolution = 128) {
   if (!bounds) return null;
   return { heightmap: flatHeightmap(bounds, 8), bounds, source: 'aabb' };
 }
+
+// Retain the simpler buildHeightmap re-export so e2e/unit tests keep working.
+export { buildHeightmap };
 
 function flatHeightmap(bounds, resolution = 8) {
   const grid = new Float32Array(resolution * resolution);
@@ -171,19 +184,53 @@ export class WalkingMode {
       rot: this.camera.getRotation().clone(),
     };
 
-    const cx = (this.bounds.min.x + this.bounds.max.x) / 2;
-    const cz = (this.bounds.min.z + this.bounds.max.z) / 2;
-    const groundY = this._sampleGround(cx, cz);
-    const startY = (groundY === -Infinity ? this.bounds.min.y : groundY)
-                   + this._eyeOffset;
-    this.camera.setPosition(cx, startY, cz);
+    const spawn = this._chooseSpawn();
+    this.camera.setPosition(spawn.x, spawn.y, spawn.z);
     this._yaw = 0;
     this._pitch = 0;
     this._vy = 0;
     this._applyRotation();
 
+    // Diagnostic so users can debug "spawned underground / in the air" by
+    // checking the browser console — bounds + spawn tell the whole story.
+    console.log('[walking] enter:', {
+      bounds: this.bounds,
+      yExtent: this._yExtent,
+      eyeOffset: this._eyeOffset,
+      spawn,
+    });
+
     this._updateFn = (dt) => this._step(dt);
     this.app.on('update', this._updateFn);
+  }
+
+  /**
+   * Find a spawn point near the scene centre with a defined ground sample.
+   * If the centre cell is empty (sky-only / data hole), spiral outward and
+   * pick the first defined cell — keeps the user from spawning in free-fall.
+   */
+  _chooseSpawn() {
+    const cx = (this.bounds.min.x + this.bounds.max.x) / 2;
+    const cz = (this.bounds.min.z + this.bounds.max.z) / 2;
+    const xStep = (this.bounds.max.x - this.bounds.min.x) / 16;
+    const zStep = (this.bounds.max.z - this.bounds.min.z) / 16;
+    const RING = 6;
+    for (let r = 0; r <= RING; r++) {
+      for (let dz = -r; dz <= r; dz++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (r > 0 && Math.abs(dx) !== r && Math.abs(dz) !== r) continue;
+          const x = cx + dx * xStep;
+          const z = cz + dz * zStep;
+          const g = this._sampleGround(x, z);
+          if (Number.isFinite(g)) {
+            return { x, y: g + this._eyeOffset, z };
+          }
+        }
+      }
+    }
+    // total fallback: dead-centre at bounds.min.y + eyeOffset (won't be great
+    // but at least it's defined).
+    return { x: cx, y: this.bounds.min.y + this._eyeOffset, z: cz };
   }
 
   exit() {
@@ -293,24 +340,21 @@ export class WalkingMode {
     } else {
       // Walking: gravity + jump + ground snap.
       const groundY = this._sampleGround(nx, nz);
-      const eyeY    = groundY === -Infinity ? -Infinity : groundY + this._eyeOffset;
-      const onGround = groundY !== -Infinity && pos.y <= eyeY + 0.01;
+      const haveGround = Number.isFinite(groundY);
+      const eyeY = haveGround ? groundY + this._eyeOffset : NaN;
+      const onGround = haveGround && pos.y <= eyeY + 0.01;
       if (s.jump && onGround) {
         this._vy = Math.sqrt(2 * this._gravity * this._jumpHeight);
       }
       this._vy -= this._gravity * dt;
       ny = pos.y + this._vy * dt;
-      if (eyeY !== -Infinity && ny < eyeY) {
+      if (haveGround && ny < eyeY) {
         ny = eyeY;
         this._vy = 0;
       }
       if (ny < this.bounds.min.y - RESPAWN_BELOW * this._eyeOffset) {
-        const cx = (this.bounds.min.x + this.bounds.max.x) / 2;
-        const cz = (this.bounds.min.z + this.bounds.max.z) / 2;
-        const respawnGround = this._sampleGround(cx, cz);
-        const respawnY = (respawnGround === -Infinity ? this.bounds.min.y : respawnGround)
-                         + this._eyeOffset;
-        this.camera.setPosition(cx, respawnY, cz);
+        const spawn = this._chooseSpawn();
+        this.camera.setPosition(spawn.x, spawn.y, spawn.z);
         this._vy = 0;
         return;
       }
