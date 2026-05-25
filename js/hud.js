@@ -56,7 +56,6 @@ export class HUD {
       this._ctaClick = null;
     }
     setTimeout(() => {
-      // only hide if we haven't been re-shown in the meantime
       if (!this.cta.classList.contains('is-visible')) this.cta.hidden = true;
     }, CTA_FADE_MS);
   }

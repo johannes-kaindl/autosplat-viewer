@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HUD isolated (test fixture, not shipped)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+  <main>
+    <!-- Same DOM the viewer ships, but no app.js / viewer.js / dropzone.
+         Test code injects HUD manually. -->
+    <section id="stage" style="background:#0e0f13">
+      <div id="canvas-host"></div>
+      <div id="hero-overlay" hidden></div>
+      <div id="stage-controls">
+        <button id="btn-orbit">⏸ Auto-orbit</button>
+        <button id="btn-reset">↺ Demo</button>
+        <button id="btn-fullscreen">⛶ Fullscreen</button>
+      </div>
+
+      <button id="cta-walk" type="button" hidden>▶ Walk through this scene</button>
+
+      <div id="walk-hud" hidden>
+        <div id="walk-mode-indicator" data-mode="walk">🚶 Walk</div>
+        <button id="walk-exit" type="button" aria-label="Exit walking mode">✕</button>
+        <div id="walk-crosshair">+</div>
+        <div id="walk-controls-hint">WASD · Mouse · Space · F (fly) · Esc</div>
+        <div id="walk-eye-overlay"></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

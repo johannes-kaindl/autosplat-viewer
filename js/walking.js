@@ -1,0 +1,235 @@
+// walking.js — first-person mode glue between PlayCanvas, the keyboard
+// input, and the heightmap collision. Lazy-loaded by viewer.js so the
+// initial PWA bundle does not pay for it.
+//
+// Controls are passive — WalkingMode reads from an input device the
+// caller supplied (KeyboardInput from controls.js) and asks the supplied
+// HUD to toggle its overlay.
+//
+// Tier-2 collision: walk on a heightmap, free-fall over empty cells,
+// soft AABB walls clamp horizontal motion to scene bounds. Fly toggle
+// and sprint are added in slice 5.
+
+import { Quat, Vec3 } from 'playcanvas';
+
+import { buildHeightmap, smoothHeightmap, sampleHeightmap } from './heightmap.js';
+
+const LOOK_SENSITIVITY = 0.0022;  // radians per pixel of mouse movement
+const PITCH_LIMIT = Math.PI / 2 - 0.05;
+const RESPAWN_BELOW = 5;          // eye-offsets below ground → respawn
+
+/** Build a world-space heightmap from a freshly loaded splat entity. */
+export function heightmapFromSplat(splatEntity, splatPivot, resolution = 128) {
+  const positions = extractSplatPositions(splatEntity);
+  if (!positions || positions.length === 0) return null;
+  const root = splatPivot ?? splatEntity;
+  const world = transformPositions(positions, root);
+  const bounds = boundsFromPositions(world);
+  const raw = buildHeightmap(world, bounds, resolution);
+  const smooth = smoothHeightmap(raw);
+  return { heightmap: smooth, bounds };
+}
+
+function extractSplatPositions(splatEntity) {
+  try {
+    const r = splatEntity?.gsplat?.asset?.resource;
+    const splatData = r?.splatData ?? r?.data;
+    if (!splatData) return null;
+    // PlayCanvas exposes per-attribute typed accessors; fall back to .position.
+    const posX = splatData.getProp?.('x');
+    const posY = splatData.getProp?.('y');
+    const posZ = splatData.getProp?.('z');
+    if (posX && posY && posZ) {
+      const n = posX.length;
+      const out = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        out[i * 3] = posX[i];
+        out[i * 3 + 1] = posY[i];
+        out[i * 3 + 2] = posZ[i];
+      }
+      return out;
+    }
+    const flat = splatData.position ?? splatData.positions;
+    if (flat instanceof Float32Array) return flat;
+  } catch { /* fall through */ }
+  return null;
+}
+
+function transformPositions(local, entity) {
+  const m = entity.getWorldTransform();
+  const d = m.data;  // column-major: see PlayCanvas Mat4
+  const out = new Float32Array(local.length);
+  for (let i = 0; i < local.length; i += 3) {
+    const x = local[i], y = local[i + 1], z = local[i + 2];
+    out[i]     = d[0] * x + d[4] * y + d[8]  * z + d[12];
+    out[i + 1] = d[1] * x + d[5] * y + d[9]  * z + d[13];
+    out[i + 2] = d[2] * x + d[6] * y + d[10] * z + d[14];
+  }
+  return out;
+}
+
+function boundsFromPositions(positions) {
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i], y = positions[i + 1], z = positions[i + 2];
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+  }
+  return {
+    min: { x: minX, y: minY, z: minZ },
+    max: { x: maxX, y: maxY, z: maxZ },
+  };
+}
+
+export class WalkingMode {
+  constructor({ app, camera, splatBounds, heightmap, input, onExit }) {
+    this.app = app;
+    this.camera = camera;
+    this.bounds = splatBounds;
+    this.hm = heightmap;
+    this.input = input;
+    this.onExit = onExit;
+    this._yaw = 0;
+    this._pitch = 0;
+    this._vy = 0;
+    this._mode = 'walk';
+    this._active = false;
+    this._savedPose = null;
+    this._updateFn = null;
+
+    const yExtent = this.bounds.max.y - this.bounds.min.y;
+    const sceneSize = Math.max(
+      this.bounds.max.x - this.bounds.min.x,
+      yExtent,
+      this.bounds.max.z - this.bounds.min.z,
+    );
+    this._eyeOffset  = Math.max(0.05, yExtent / 8);
+    this._jumpHeight = Math.max(0.02, yExtent / 40);
+    this._gravity    = this._jumpHeight * 8;
+    this._walkSpeed  = sceneSize * 0.18;  // ~5.5s to cross the longest axis
+  }
+
+  enter() {
+    if (this._active) return;
+    this._active = true;
+    this._savedPose = {
+      pos: this.camera.getPosition().clone(),
+      rot: this.camera.getRotation().clone(),
+    };
+
+    const cx = (this.bounds.min.x + this.bounds.max.x) / 2;
+    const cz = (this.bounds.min.z + this.bounds.max.z) / 2;
+    const groundY = this._sampleGround(cx, cz);
+    const startY = (groundY === -Infinity ? this.bounds.min.y : groundY)
+                   + this._eyeOffset;
+    this.camera.setPosition(cx, startY, cz);
+    this._yaw = 0;
+    this._pitch = 0;
+    this._vy = 0;
+    this._applyRotation();
+
+    this._updateFn = (dt) => this._step(dt);
+    this.app.on('update', this._updateFn);
+  }
+
+  exit() {
+    if (!this._active) return;
+    this._active = false;
+    if (this._updateFn) {
+      this.app.off('update', this._updateFn);
+      this._updateFn = null;
+    }
+    if (this._savedPose) {
+      this.camera.setPosition(this._savedPose.pos);
+      this.camera.setRotation(this._savedPose.rot);
+      this._savedPose = null;
+    }
+  }
+
+  isActive() { return this._active; }
+
+  _sampleGround(x, z) {
+    return sampleHeightmap(this.hm, this.bounds, x, z);
+  }
+
+  _applyRotation() {
+    // FPS look = yaw around world Y, then pitch around local X.
+    // Compose explicitly to avoid Euler order ambiguity.
+    const yawQ = new Quat();
+    const pitchQ = new Quat();
+    yawQ.setFromAxisAngle(Vec3.UP, this._yaw * 180 / Math.PI);
+    pitchQ.setFromAxisAngle(Vec3.RIGHT, this._pitch * 180 / Math.PI);
+    yawQ.mul(pitchQ);
+    this.camera.setRotation(yawQ);
+  }
+
+  _step(dt) {
+    if (!this.input) return;
+    const s = this.input.read();
+
+    if (s.exit) { this.onExit?.(); return; }
+
+    // mouse look
+    this._yaw   -= s.lookDeltaX * LOOK_SENSITIVITY;
+    this._pitch -= s.lookDeltaY * LOOK_SENSITIVITY;
+    if (this._pitch >  PITCH_LIMIT) this._pitch =  PITCH_LIMIT;
+    if (this._pitch < -PITCH_LIMIT) this._pitch = -PITCH_LIMIT;
+    this._applyRotation();
+
+    // horizontal motion in world XZ, projected from yaw only
+    let fx = 0, fz = 0;
+    if (s.forward || s.right) {
+      const sy = Math.sin(this._yaw), cy = Math.cos(this._yaw);
+      let dx = -sy * s.forward + cy * s.right;
+      let dz = -cy * s.forward - sy * s.right;
+      const len = Math.hypot(dx, dz);
+      if (len > 0) { dx /= len; dz /= len; }
+      const step = this._walkSpeed * dt;
+      fx = dx * step;
+      fz = dz * step;
+    }
+
+    const pos = this.camera.getPosition();
+    let nx = pos.x + fx;
+    let nz = pos.z + fz;
+
+    // soft clamp to scene bounds (Tier-2 "walls")
+    if (nx < this.bounds.min.x) nx = this.bounds.min.x;
+    if (nx > this.bounds.max.x) nx = this.bounds.max.x;
+    if (nz < this.bounds.min.z) nz = this.bounds.min.z;
+    if (nz > this.bounds.max.z) nz = this.bounds.max.z;
+
+    // jump impulse only when on ground
+    const groundY = this._sampleGround(nx, nz);
+    const eyeY    = groundY === -Infinity ? -Infinity : groundY + this._eyeOffset;
+    const onGround = groundY !== -Infinity && pos.y <= eyeY + 0.01;
+    if (s.jump && onGround) {
+      this._vy = Math.sqrt(2 * this._gravity * this._jumpHeight);
+    }
+
+    // gravity integration
+    this._vy -= this._gravity * dt;
+    let ny = pos.y + this._vy * dt;
+
+    if (eyeY !== -Infinity && ny < eyeY) {
+      ny = eyeY;
+      this._vy = 0;
+    }
+
+    // respawn if we've fallen too far below the scene
+    if (ny < this.bounds.min.y - RESPAWN_BELOW * this._eyeOffset) {
+      const cx = (this.bounds.min.x + this.bounds.max.x) / 2;
+      const cz = (this.bounds.min.z + this.bounds.max.z) / 2;
+      const respawnGround = this._sampleGround(cx, cz);
+      const respawnY = (respawnGround === -Infinity ? this.bounds.min.y : respawnGround)
+                       + this._eyeOffset;
+      this.camera.setPosition(cx, respawnY, cz);
+      this._vy = 0;
+      return;
+    }
+
+    this.camera.setPosition(nx, ny, nz);
+  }
+}

@@ -33,7 +33,11 @@ export function createViewer(hostElement) {
       'Your browser does not support WebGL2 — showing a still image.</p>';
     return {
       loadSplat: () => {}, setAutoOrbit: () => {},
-      isAutoOrbit: () => false, onLoad: () => {}, unsupported: true
+      isAutoOrbit: () => false, onLoad: () => {},
+      enterWalking: async () => false, exitWalking: () => {},
+      isWalking: () => false,
+      onWalkingEnter: () => {}, onWalkingExit: () => {},
+      unsupported: true
     };
   }
 
@@ -124,11 +128,81 @@ export function createViewer(hostElement) {
     }
   }
 
+  // ---------- Walking-mode glue ----------
+
+  let walkingMode = null;
+  let pivotRotationOnEnter = null;
+  let lockChangeHandler = null;
+  const walkEnterListeners = [];
+  const walkExitListeners = [];
+
+  async function enterWalking(input) {
+    if (walkingMode) return false;
+    if (!splatEntity || !splatPivot) throw new Error('no-splat-loaded');
+    autoOrbit = false;
+    pivotRotationOnEnter = splatPivot.getRotation().clone();
+    splatPivot.setEulerAngles(0, 0, 0);
+
+    const { heightmapFromSplat, WalkingMode } = await import('./walking.js');
+    const hm = heightmapFromSplat(splatEntity, splatPivot);
+    if (!hm) {
+      splatPivot.setRotation(pivotRotationOnEnter);
+      pivotRotationOnEnter = null;
+      throw new Error('heightmap-build-failed');
+    }
+
+    if (cc) cc.enabled = false;
+    try { await canvas.requestPointerLock?.(); } catch { /* desktop without lock — fine */ }
+    input.attach(window);
+
+    lockChangeHandler = () => {
+      if (document.pointerLockElement !== canvas && walkingMode) exitWalking(input);
+    };
+    document.addEventListener('pointerlockchange', lockChangeHandler);
+
+    walkingMode = new WalkingMode({
+      app, camera, splatBounds: hm.bounds, heightmap: hm.heightmap,
+      input, onExit: () => exitWalking(input),
+    });
+    walkingMode.enter();
+    for (const fn of walkEnterListeners) {
+      try { fn(); } catch (e) { console.error(e); }
+    }
+    return true;
+  }
+
+  function exitWalking(input) {
+    if (!walkingMode) return;
+    walkingMode.exit();
+    walkingMode = null;
+    if (lockChangeHandler) {
+      document.removeEventListener('pointerlockchange', lockChangeHandler);
+      lockChangeHandler = null;
+    }
+    if (document.exitPointerLock && document.pointerLockElement === canvas) {
+      document.exitPointerLock();
+    }
+    input?.detach();
+    if (cc) cc.enabled = true;
+    if (pivotRotationOnEnter && splatPivot) {
+      splatPivot.setRotation(pivotRotationOnEnter);
+      pivotRotationOnEnter = null;
+    }
+    for (const fn of walkExitListeners) {
+      try { fn(); } catch (e) { console.error(e); }
+    }
+  }
+
   return {
     loadSplat,
     setAutoOrbit(on) { autoOrbit = on; },
     isAutoOrbit() { return autoOrbit; },
     onLoad(fn) { loadListeners.push(fn); },
+    enterWalking,
+    exitWalking,
+    isWalking() { return walkingMode != null; },
+    onWalkingEnter(fn) { walkEnterListeners.push(fn); },
+    onWalkingExit(fn) { walkExitListeners.push(fn); },
     unsupported: false
   };
 }

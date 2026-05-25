@@ -1,0 +1,14 @@
+{
+  "name": "autosplat-viewer-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Test harness for autosplat-viewer (gitignored node_modules).",
+  "devDependencies": {
+    "puppeteer-core": "^23.11.1"
+  },
+  "scripts": {
+    "test:unit": "node --test ../tests/unit/",
+    "test:e2e": "node --test ../tests/e2e/"
+  }
+}

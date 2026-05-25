@@ -1,6 +1,7 @@
 import { createViewer } from './viewer.js';
 import { initDropzone } from './dropzone.js';
 import { HUD } from './hud.js';
+import { KeyboardInput } from './controls.js';
 
 const DEMO_URL = 'assets/demo/scene.sog';
 
@@ -71,11 +72,28 @@ initDropzone({
   }
 });
 
+// ---------- Walking-mode wiring (slice 4) ----------
+
+const input = new KeyboardInput();
+
+viewer.onWalkingEnter?.(() => {
+  hud.enterWalkingUI({ onExit: () => viewer.exitWalking?.(input) });
+});
+
+viewer.onWalkingExit?.(() => {
+  hud.exitWalkingUI();
+  syncOrbitButton();
+});
+
 viewer.onLoad?.(() => {
-  // Walking-mode wiring lands in slice 4 — for now the CTA only logs.
-  hud.showCTA(() => {
-    // eslint-disable-next-line no-console
-    console.log('[walking] CTA clicked — walking-mode lands in slice 4');
+  hud.showCTA(async () => {
+    try {
+      await viewer.enterWalking?.(input);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[walking] enter failed:', err);
+      showError('Could not enter walking mode — splat data unavailable');
+    }
   });
 });
 
