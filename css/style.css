@@ -69,3 +69,92 @@ footer a { color: var(--muted); }
   #hero-overlay { left: 3vw; right: 3vw; max-width: none; }
   #stage-controls { bottom: auto; top: 1rem; }
 }
+
+/* ---------- Walking-mode CTA (entry button) ---------- */
+
+#cta-walk {
+  position: absolute; left: 50%; top: 38%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, var(--accent) 0%, #4a6ae8 100%);
+  color: #fff; font-weight: 600; font-size: 1.1rem;
+  padding: 0.95rem 1.6rem; border-radius: 999px; border: none;
+  box-shadow: 0 8px 28px rgba(96, 128, 255, 0.45),
+              0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+  cursor: pointer; z-index: 10;
+  opacity: 0; transition: opacity 0.5s ease, transform 0.5s ease;
+  letter-spacing: 0.01em;
+}
+#cta-walk.is-visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+#cta-walk:hover { transform: translate(-50%, -50%) scale(1.03); }
+#cta-walk:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* ---------- Walking-mode HUD overlay ---------- */
+
+#walk-hud {
+  position: absolute; inset: 0; z-index: 20;
+  pointer-events: none;  /* let underlying canvas keep receiving events */
+}
+#walk-hud > * { pointer-events: auto; }
+#walk-hud > #walk-crosshair { pointer-events: none; }
+
+#walk-crosshair {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff; opacity: 0.55; font-size: 1.6rem; line-height: 1;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  user-select: none;
+}
+
+#walk-mode-indicator {
+  position: absolute; left: 1.2rem; top: 1.2rem;
+  background: var(--panel); color: var(--fg);
+  padding: 0.45rem 0.95rem; border-radius: 999px;
+  font-size: 0.9rem; font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(8px);
+}
+#walk-mode-indicator[data-mode="fly"] {
+  background: linear-gradient(135deg, #4a6ae8 0%, #6080ff 100%);
+  color: #fff; border-color: rgba(255,255,255,0.35);
+}
+
+#walk-exit {
+  position: absolute; right: 1.2rem; top: 1.2rem;
+  background: rgba(170, 48, 48, 0.85); color: #fff;
+  width: 2.4rem; height: 2.4rem; padding: 0;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,0.3);
+  font-size: 1.1rem; line-height: 1; cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+#walk-exit:hover { background: rgba(190, 56, 56, 0.95); }
+
+#walk-controls-hint {
+  position: absolute; left: 50%; bottom: 1.5rem;
+  transform: translateX(-50%);
+  background: var(--panel); color: var(--fg);
+  padding: 0.45rem 1rem; border-radius: 999px;
+  font-size: 0.82rem; letter-spacing: 0.02em;
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  transition: opacity 0.8s ease;
+}
+#walk-controls-hint.is-dim { opacity: 0.25; }
+
+#walk-eye-overlay {
+  position: absolute; left: 50%; top: 58%;
+  transform: translate(-50%, -50%);
+  background: var(--panel); color: var(--fg);
+  padding: 0.4rem 0.9rem; border-radius: 7px;
+  font-size: 0.85rem; opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+#walk-eye-overlay.is-visible { opacity: 1; }
+
+/* Mobile tweaks — touch buttons join in slice 6 */
+@media (max-width: 600px) {
+  #cta-walk { font-size: 1rem; padding: 0.85rem 1.3rem; top: 35%; }
+  #walk-mode-indicator { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+  #walk-controls-hint { font-size: 0.72rem; bottom: 1rem; max-width: 92vw; }
+}

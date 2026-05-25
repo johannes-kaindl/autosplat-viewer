@@ -42,6 +42,19 @@
       <div id="viewer-error" role="alert" hidden></div>
       <div id="viewer-spinner" hidden>Loading…</div>
       <input id="file-input" type="file" accept=".ply" hidden>
+
+      <button id="cta-walk" type="button" hidden
+              aria-label="Walk through this scene in first person">
+        ▶ Walk through this scene
+      </button>
+
+      <div id="walk-hud" hidden role="region" aria-label="Walking mode">
+        <div id="walk-mode-indicator" data-mode="walk">🚶 Walk</div>
+        <button id="walk-exit" type="button" aria-label="Exit walking mode">✕</button>
+        <div id="walk-crosshair" aria-hidden="true">+</div>
+        <div id="walk-controls-hint">WASD · Mouse · Space · F (fly) · Esc</div>
+        <div id="walk-eye-overlay"></div>
+      </div>
     </section>
 
     <section id="about">

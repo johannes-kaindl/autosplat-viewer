@@ -33,7 +33,7 @@ export function createViewer(hostElement) {
       'Your browser does not support WebGL2 — showing a still image.</p>';
     return {
       loadSplat: () => {}, setAutoOrbit: () => {},
-      isAutoOrbit: () => false, unsupported: true
+      isAutoOrbit: () => false, onLoad: () => {}, unsupported: true
     };
   }
 
@@ -65,6 +65,7 @@ export function createViewer(hostElement) {
   let splatPivot = null;
   let splatEntity = null;
   let autoOrbit = true;
+  const loadListeners = [];
 
   app.on('update', (dt) => {
     if (autoOrbit && splatPivot) splatPivot.rotate(0, ORBIT_SPEED * dt, 0);
@@ -117,12 +118,17 @@ export function createViewer(hostElement) {
       new Vec3(pose.cameraPos.x, pose.cameraPos.y, pose.cameraPos.z));
 
     autoOrbit = true; // a freshly loaded splat always starts orbiting
+
+    for (const fn of loadListeners) {
+      try { fn({ splatEntity, splatPivot }); } catch (e) { console.error(e); }
+    }
   }
 
   return {
     loadSplat,
     setAutoOrbit(on) { autoOrbit = on; },
     isAutoOrbit() { return autoOrbit; },
+    onLoad(fn) { loadListeners.push(fn); },
     unsupported: false
   };
 }

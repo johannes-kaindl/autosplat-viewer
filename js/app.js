@@ -1,11 +1,14 @@
 import { createViewer } from './viewer.js';
 import { initDropzone } from './dropzone.js';
+import { HUD } from './hud.js';
 
 const DEMO_URL = 'assets/demo/scene.sog';
 
 const errorBox = document.getElementById('viewer-error');
 const spinner = document.getElementById('viewer-spinner');
+const stage = document.getElementById('stage');
 const viewer = createViewer(document.getElementById('canvas-host'));
+const hud = new HUD(stage);
 
 const btnOrbit = document.getElementById('btn-orbit');
 const btnReset = document.getElementById('btn-reset');
@@ -47,7 +50,6 @@ btnReset.addEventListener('click', async () => {
   syncOrbitButton();
 });
 
-const stage = document.getElementById('stage');
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
   const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
   if (fsEl) {
@@ -67,6 +69,14 @@ initDropzone({
     if (file) load(file);
     else showError(`Unsupported: ${badName} — only .ply is allowed`);
   }
+});
+
+viewer.onLoad?.(() => {
+  // Walking-mode wiring lands in slice 4 — for now the CTA only logs.
+  hud.showCTA(() => {
+    // eslint-disable-next-line no-console
+    console.log('[walking] CTA clicked — walking-mode lands in slice 4');
+  });
 });
 
 load(DEMO_URL, 'scene.sog');

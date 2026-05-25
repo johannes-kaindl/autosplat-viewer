@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HUD preview (test asset, not shipped)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+  <main>
+    <section id="stage" style="background:url(/assets/og-image.jpg) center/cover">
+      <div id="canvas-host"></div>
+      <div id="hero-overlay">
+        <h1>Drone video → 3D Gaussian Splat</h1>
+        <p>Trained splats, right in your browser. Rendered locally — nothing is uploaded.</p>
+      </div>
+      <div id="stage-controls" hidden>
+        <button>⏸ Auto-orbit</button>
+        <button>↺ Demo</button>
+        <button>⛶ Fullscreen</button>
+      </div>
+
+      <!-- CTA shown manually for screenshot -->
+      <button id="cta-walk" class="is-visible" type="button">
+        ▶ Walk through this scene
+      </button>
+
+      <!-- HUD shown manually for screenshot -->
+      <div id="walk-hud">
+        <div id="walk-mode-indicator" data-mode="walk">🚶 Walk</div>
+        <button id="walk-exit" type="button" aria-label="Exit walking mode">✕</button>
+        <div id="walk-crosshair">+</div>
+        <div id="walk-controls-hint">WASD · Mouse · Space · F (fly) · Esc</div>
+        <div id="walk-eye-overlay" class="is-visible">Eye height: 0.62</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
