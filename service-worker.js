@@ -1,8 +1,9 @@
-const SHELL = 'autosplat-shell-v2';
-const RUNTIME = 'autosplat-runtime-v2';
+const SHELL = 'autosplat-shell-v3';
+const RUNTIME = 'autosplat-runtime-v3';
 const SHELL_FILES = [
   './', './index.html', './css/style.css',
   './js/app.js', './js/viewer.js', './js/dropzone.js',
+  './js/hud.js', './js/heightmap.js', './js/controls.js', './js/walking.js',
   './manifest.webmanifest', './assets/og-image.jpg',
   './icons/icon-192.png', './icons/icon-512.png'
 ];
