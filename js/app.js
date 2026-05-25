@@ -121,9 +121,22 @@ viewer.onLoad?.(() => {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[walking] enter failed:', err);
-      showError('Could not enter walking mode — splat data unavailable');
+      const msg = err?.message === 'heightmap-build-failed'
+        ? 'Splat has no usable geometry for walking-mode.'
+        : 'Could not enter walking mode.';
+      showError(msg);
     }
   });
+});
+
+// Re-acquire pointer-lock if it's lost while still in walking-mode (clicking
+// outside the canvas, alt-tab, etc.). The click itself is the user gesture
+// the browser needs to grant the lock again.
+document.getElementById('canvas-host')?.addEventListener('click', () => {
+  if (viewer.isWalking?.() &&
+      document.pointerLockElement !== document.querySelector('#canvas-host canvas')) {
+    document.querySelector('#canvas-host canvas')?.requestPointerLock?.();
+  }
 });
 
 load(DEMO_URL, 'scene.sog');

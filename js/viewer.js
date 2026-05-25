@@ -149,9 +149,14 @@ export function createViewer(hostElement) {
     const { heightmapFromSplat, WalkingMode } = await import('./walking.js');
     const hm = heightmapFromSplat(splatEntity, splatPivot);
     if (!hm) {
+      // No usable bounds — abort cleanly and restore the orbit pose.
       splatPivot.setRotation(pivotRotationOnEnter);
       pivotRotationOnEnter = null;
+      autoOrbit = true;
       throw new Error('heightmap-build-failed');
+    }
+    if (hm.source === 'aabb') {
+      console.warn('[walking] splat positions unavailable — using flat-floor fallback');
     }
 
     if (cc) cc.enabled = false;

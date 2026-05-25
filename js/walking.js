@@ -23,16 +23,55 @@ const EYE_MIN_FRAC = 0.01;        // eye-offset ≥ 1% of yExtent
 const EYE_MAX_FRAC = 0.6;         //              ≤ 60% of yExtent
 const EYE_STORE_KEY = 'autosplat-walking-eye-frac';
 
-/** Build a world-space heightmap from a freshly loaded splat entity. */
+/**
+ * Build a world-space heightmap from a freshly loaded splat entity.
+ * Returns { heightmap, bounds, source } where source is:
+ *   - 'splat'  — high-fidelity, built from raw splat positions
+ *   - 'aabb'   — fallback flat floor at bounds.min.y (extraction failed)
+ *   - null     — no usable bounds at all; caller should disable walking
+ */
 export function heightmapFromSplat(splatEntity, splatPivot, resolution = 128) {
-  const positions = extractSplatPositions(splatEntity);
-  if (!positions || positions.length === 0) return null;
   const root = splatPivot ?? splatEntity;
-  const world = transformPositions(positions, root);
-  const bounds = boundsFromPositions(world);
-  const raw = buildHeightmap(world, bounds, resolution);
-  const smooth = smoothHeightmap(raw);
-  return { heightmap: smooth, bounds };
+  const positions = extractSplatPositions(splatEntity);
+  if (positions && positions.length > 0) {
+    const world = transformPositions(positions, root);
+    const bounds = boundsFromPositions(world);
+    const raw = buildHeightmap(world, bounds, resolution);
+    const smooth = smoothHeightmap(raw);
+    return { heightmap: smooth, bounds, source: 'splat' };
+  }
+  // Fallback: flat floor sized to the entity's AABB. The walker can still
+  // walk in a box even when we can't reach into the splat's typed arrays.
+  const bounds = boundsFromEntityAabb(splatEntity, root);
+  if (!bounds) return null;
+  return { heightmap: flatHeightmap(bounds, 8), bounds, source: 'aabb' };
+}
+
+function flatHeightmap(bounds, resolution = 8) {
+  const grid = new Float32Array(resolution * resolution);
+  grid.fill(bounds.min.y);
+  return { grid, resolution };
+}
+
+function boundsFromEntityAabb(splatEntity, root) {
+  try {
+    const aabb = splatEntity?.gsplat?.instance?.aabb
+              ?? splatEntity?.gsplat?.aabb
+              ?? splatEntity?.aabb;
+    if (aabb?.getMin && aabb?.getMax) {
+      const mn = aabb.getMin(), mx = aabb.getMax();
+      return {
+        min: { x: mn.x, y: mn.y, z: mn.z },
+        max: { x: mx.x, y: mx.y, z: mx.z },
+      };
+    }
+    // last-ditch: derive a unit box around the entity world position
+    const p = root.getPosition();
+    return {
+      min: { x: p.x - 1, y: p.y - 1, z: p.z - 1 },
+      max: { x: p.x + 1, y: p.y + 1, z: p.z + 1 },
+    };
+  } catch { return null; }
 }
 
 function extractSplatPositions(splatEntity) {
