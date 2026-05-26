@@ -11,9 +11,16 @@
 html, body { background: var(--bg); color: var(--fg);
   font-family: system-ui, -apple-system, sans-serif; }
 
-#stage { position: relative; width: 100%; height: 82vh; overflow: hidden; }
+/* iOS Safari: kill the grey tap-flash and the 300 ms tap delay on every button */
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+#stage { position: relative; width: 100%; height: 82vh; overflow: hidden;
+  /* prevent pull-to-refresh / page-scroll bleed when the user drags inside the canvas */
+  overscroll-behavior: contain; }
 #canvas-host { position: absolute; inset: 0; }
-#canvas-host canvas { width: 100%; height: 100%; display: block; }
+#canvas-host canvas { width: 100%; height: 100%; display: block;
+  /* let JS own all touch gestures on the WebGL canvas — no browser pinch/pan/dbl-tap-zoom */
+  touch-action: none; }
 
 #hero-overlay { position: absolute; left: 5vw; bottom: 8vh; max-width: 30rem;
   background: var(--panel); padding: 1.5rem; border-radius: 10px;
@@ -37,6 +44,14 @@ button#btn-load, button { background: var(--accent); color: #fff; }
 /* fullscreen: hide the intro overlay — pure splat */
 #stage:fullscreen #hero-overlay { display: none; }
 #stage:-webkit-full-screen #hero-overlay { display: none; }
+
+/* iOS Safari iPhone has no Fullscreen API for non-<video>: CSS pseudo-fullscreen */
+body.fs-fallback { overflow: hidden; }
+body.fs-fallback #stage {
+  position: fixed; inset: 0; width: 100vw; height: 100dvh;
+  z-index: 9999;
+}
+body.fs-fallback #hero-overlay { display: none; }
 
 #drop-hint { position: absolute; inset: 0; display: flex;
   align-items: center; justify-content: center; font-size: 1.4rem;
@@ -65,9 +80,12 @@ footer { display: flex; gap: 0.6rem; justify-content: center;
 footer a { color: var(--muted); }
 
 @media (max-width: 600px) {
-  #stage { height: 70vh; }
-  #hero-overlay { left: 3vw; right: 3vw; max-width: none; }
-  #stage-controls { bottom: auto; top: 1rem; }
+  /* dvh follows the dynamic viewport (URL bar collapse on iOS); falls back to vh */
+  #stage { height: 70vh; height: 70dvh; }
+  #hero-overlay { left: 3vw; right: 3vw; max-width: none;
+    bottom: calc(8vh + env(safe-area-inset-bottom)); }
+  /* push controls below the iPhone notch / status bar */
+  #stage-controls { bottom: auto; top: calc(1rem + env(safe-area-inset-top)); }
 }
 
 /* ---------- Walking-mode CTA (entry button) ---------- */
@@ -107,7 +125,9 @@ footer a { color: var(--muted); }
 }
 
 #walk-mode-indicator {
-  position: absolute; left: 1.2rem; top: 1.2rem;
+  position: absolute;
+  left: calc(1.2rem + env(safe-area-inset-left));
+  top:  calc(1.2rem + env(safe-area-inset-top));
   background: var(--panel); color: var(--fg);
   padding: 0.45rem 0.95rem; border-radius: 999px;
   font-size: 0.9rem; font-weight: 600;
@@ -120,7 +140,9 @@ footer a { color: var(--muted); }
 }
 
 #walk-exit {
-  position: absolute; right: 1.2rem; top: 1.2rem;
+  position: absolute;
+  right: calc(1.2rem + env(safe-area-inset-right));
+  top:   calc(1.2rem + env(safe-area-inset-top));
   background: rgba(170, 48, 48, 0.85); color: #fff;
   width: 2.4rem; height: 2.4rem; padding: 0;
   border-radius: 999px; border: 1px solid rgba(255,255,255,0.3);
@@ -130,7 +152,8 @@ footer a { color: var(--muted); }
 #walk-exit:hover { background: rgba(190, 56, 56, 0.95); }
 
 #walk-controls-hint {
-  position: absolute; left: 50%; bottom: 1.5rem;
+  position: absolute; left: 50%;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   background: var(--panel); color: var(--fg);
   padding: 0.45rem 1rem; border-radius: 999px;
@@ -155,7 +178,9 @@ footer a { color: var(--muted); }
 /* ---------- Walking-mode touch buttons (Jump / Fly) ---------- */
 
 #walk-touch-buttons {
-  position: absolute; right: 1rem; bottom: 4.5rem;
+  position: absolute;
+  right:  calc(1rem + env(safe-area-inset-right));
+  bottom: calc(4.5rem + env(safe-area-inset-bottom));
   display: none;  /* shown on touch-capable devices only — see media-query below */
   flex-direction: column; gap: 0.6rem;
   pointer-events: auto;

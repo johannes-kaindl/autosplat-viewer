@@ -52,12 +52,25 @@ btnReset.addEventListener('click', async () => {
 });
 
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
-  const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+  const enter = stage.requestFullscreen || stage.webkitRequestFullscreen;
+  const exit  = document.exitFullscreen  || document.webkitExitFullscreen;
+  const fsEl  = document.fullscreenElement || document.webkitFullscreenElement;
+
+  // iOS Safari on iPhone exposes no Fullscreen API for non-<video> elements.
+  if (!enter) {
+    document.body.classList.toggle('fs-fallback');
+    window.dispatchEvent(new Event('resize'));
+    return;
+  }
+
   if (fsEl) {
-    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    exit.call(document);
   } else {
-    const result = (stage.requestFullscreen || stage.webkitRequestFullscreen).call(stage);
-    if (result && result.catch) result.catch(() => {});
+    const result = enter.call(stage);
+    if (result && result.catch) result.catch(() => {
+      document.body.classList.add('fs-fallback');
+      window.dispatchEvent(new Event('resize'));
+    });
   }
 });
 

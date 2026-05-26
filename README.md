@@ -20,8 +20,12 @@ it. No build step, no server, no upload — everything renders locally.
 - **Walking-mode** — first-person walk-through with WASD + mouse-look,
   collision via an in-browser heightmap (no server, no extra files)
 - Drag-and-drop or file-picker for your own `.ply` splats
-- Fullscreen mode — distraction-free, intro overlay hidden
-- Installable PWA with an offline-capable app shell
+- Fullscreen mode — distraction-free, intro overlay hidden (with a
+  CSS-fallback on iPhone Safari where no Fullscreen API exists)
+- Installable PWA with an offline-capable app shell — including a
+  fully-supported "Add to Home Screen" on iOS
+- iPhone-aware UI — safe-area handling around the notch / Dynamic
+  Island / home indicator
 - Graceful WebGL2 fallback to a still image
 
 ## Walking-mode
@@ -90,6 +94,19 @@ git push origin main:pages   # publish to the pages branch
 
 All asset paths are relative, so the site works under the
 `/autosplat-viewer/` sub-path.
+
+## Install as an app
+
+The viewer is a PWA — install it for a fullscreen, app-like experience:
+
+- **iOS (Safari):** Share → *Add to Home Screen*. Launches standalone
+  with no Safari chrome.
+- **Android / desktop Chrome / Edge:** address-bar install icon, or the
+  browser's "Install app" menu entry.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the per-release history.
 
 ## Tech
 
