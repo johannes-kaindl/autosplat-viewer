@@ -31,7 +31,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .cta-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 button, .btn-secondary { font: inherit; padding: 0.6rem 1rem; border-radius: 7px;
   border: 1px solid var(--accent); cursor: pointer; text-decoration: none; }
-button#btn-load, button { background: var(--accent); color: #fff; }
+button { background: var(--accent); color: #fff; }
 .btn-secondary { background: transparent; color: var(--fg); }
 
 #stage-controls { position: absolute; left: 50%; bottom: 1.5rem;

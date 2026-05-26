@@ -4,6 +4,7 @@ import { HUD } from './hud.js';
 import { KeyboardInput, TouchInput, CompositeInput } from './controls.js';
 
 const DEMO_URL = 'assets/demo/scene.sog';
+const PREFERS_REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const errorBox = document.getElementById('viewer-error');
 const spinner = document.getElementById('viewer-spinner');
@@ -26,6 +27,10 @@ async function load(source, filename) {
   spinner.hidden = false;
   try {
     await viewer.loadSplat(source, filename);
+    // Honour the OS-level reduced-motion preference: each fresh load
+    // resets autoOrbit to true inside the viewer; turn it back off
+    // for users who don't want spontaneous motion.
+    if (PREFERS_REDUCED_MOTION.matches) viewer.setAutoOrbit(false);
   } catch {
     showError('Could not load the file — supported format: .ply');
   } finally {
