@@ -219,7 +219,9 @@ viewer.onCollisionEnter?.(({ mode }) => {
         mode._lockReleasedForBrush = false;
       }
     },
+    onUseColliderChange: (checked) => viewer.setUseMeshCollider?.(checked),
   });
+  hud.setCollisionUseCollider(viewer.isUsingMeshCollider?.() ?? false);
   syncCollisionButton();
 });
 
@@ -230,6 +232,13 @@ viewer.onCollisionExit?.(() => {
 
 viewer.onCollisionMeshBuilt?.(({ triCount, iso }) => {
   hud.setCollisionStatus(`${triCount.toLocaleString()} tris · iso ${iso.toFixed(2)}`);
+  // Sync the iso slider to the mode's actual value so a subsequent slider
+  // drag starts from the right place. Skip when the user IS dragging the
+  // slider (their input event triggered this rebuild — don't fight them).
+  const isoSlider = document.getElementById('coll-iso');
+  if (isoSlider && document.activeElement !== isoSlider) {
+    isoSlider.value = String(iso);
+  }
 });
 
 function strokeKindNow() {

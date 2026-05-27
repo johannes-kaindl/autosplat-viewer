@@ -125,8 +125,15 @@ export class HUD {
         handlers.onIsoChange?.(parseFloat(e.target.value)));
       t.querySelectorAll('input[name="coll-tool"]').forEach((r) =>
         r.addEventListener('change', (e) => handlers.onToolChange?.(e.target.value)));
+      t.querySelector('#coll-use-collider')?.addEventListener('change', (e) =>
+        handlers.onUseColliderChange?.(e.target.checked));
       this._collisionWired = true;
     }
+  }
+
+  setCollisionUseCollider(checked) {
+    const c = this.stage.querySelector('#coll-use-collider');
+    if (c) c.checked = !!checked;
   }
 
   exitCollisionUI() {

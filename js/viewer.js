@@ -45,6 +45,8 @@ export function createViewer(hostElement) {
       onCollisionEnter: () => {},
       onCollisionExit: () => {},
       onCollisionMeshBuilt: () => {},
+      setUseMeshCollider: () => {},
+      isUsingMeshCollider: () => false,
       unsupported: true
     };
   }
@@ -141,6 +143,7 @@ export function createViewer(hostElement) {
   let walkingMode = null;
   let pivotRotationOnEnter = null;
   let lockChangeHandler = null;
+  let useMeshCollider = false;  // sticky preference, applied on every walking-enter
   const walkEnterListeners = [];
   const walkExitListeners = [];
   const walkModeListeners = [];
@@ -195,10 +198,25 @@ export function createViewer(hostElement) {
       },
     });
     walkingMode.enter();
+    applyWalkingColliderPreference();
     for (const fn of walkEnterListeners) {
       try { fn(); } catch (e) { console.error(e); }
     }
     return true;
+  }
+
+  function applyWalkingColliderPreference() {
+    if (!walkingMode) return;
+    if (useMeshCollider && collisionMode) {
+      const strat = collisionMode.getCollider();
+      if (strat) { walkingMode.setCollider(strat); return; }
+    }
+    walkingMode.setCollider(null); // back to heightmap default
+  }
+
+  function setUseMeshCollider(on) {
+    useMeshCollider = !!on;
+    applyWalkingColliderPreference();
   }
 
   function exitWalking(input) {
@@ -241,6 +259,9 @@ export function createViewer(hostElement) {
       getSplatPositions: () => splatWorldGeometry(splatEntity, splatPivot),
     });
     collisionMode.onBuilt((info) => {
+      // If walking-mode is up and prefers mesh, the BVH just got rebuilt —
+      // hand the fresh one over.
+      applyWalkingColliderPreference();
       for (const fn of collisionBuiltListeners) {
         try { fn(info); } catch (e) { console.error(e); }
       }
@@ -279,6 +300,8 @@ export function createViewer(hostElement) {
     onCollisionEnter(fn) { collisionEnterListeners.push(fn); },
     onCollisionExit(fn) { collisionExitListeners.push(fn); },
     onCollisionMeshBuilt(fn) { collisionBuiltListeners.push(fn); },
+    setUseMeshCollider,
+    isUsingMeshCollider() { return useMeshCollider; },
     unsupported: false
   };
 }
