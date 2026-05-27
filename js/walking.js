@@ -16,6 +16,7 @@ import {
   buildHeightmap, buildMedianHeightmap, smoothHeightmap, sampleHeightmap,
   robustBounds,
 } from './heightmap.js';
+import { raycast as bvhRaycast, capsuleSweep as bvhCapsuleSweep } from './collision/mesh-bvh.js';
 
 const LOOK_SENSITIVITY = 0.0022;  // radians per pixel of mouse movement
 const PITCH_LIMIT = Math.PI / 2 - 0.05;
@@ -264,7 +265,31 @@ export class WalkingMode {
 
   isActive() { return this._active; }
 
+  /**
+   * Swap the active collider strategy. `null` → heightmap (default).
+   * Strategy: { kind: 'mesh', bvh, bounds } | { kind: 'heightmap', hm, bounds }
+   */
+  setCollider(strategy) {
+    this._collider = strategy ?? { kind: 'heightmap', hm: this.hm, bounds: this.bounds };
+    if (strategy?.bounds) this.bounds = strategy.bounds;
+  }
+
+  _ensureCollider() {
+    if (!this._collider) {
+      this._collider = { kind: 'heightmap', hm: this.hm, bounds: this.bounds };
+    }
+    return this._collider;
+  }
+
   _sampleGround(x, z) {
+    const c = this._ensureCollider();
+    if (c.kind === 'mesh') {
+      const yHigh = this.bounds.max.y + 5;
+      const hit = bvhRaycast(c.bvh, [x, yHigh, z], [0, -1, 0]);
+      if (hit) return hit.point[1];
+      // fall back to heightmap when the ray misses (mesh has no surface here)
+      return sampleHeightmap(this.hm, this.bounds, x, z);
+    }
     return sampleHeightmap(this.hm, this.bounds, x, z);
   }
 
@@ -333,6 +358,22 @@ export class WalkingMode {
     const pos = this.camera.getPosition();
     let nx = pos.x + fx;
     let nz = pos.z + fz;
+
+    // Mesh-collider horizontal sweep: clip nx/nz against any wall triangles
+    // along the requested step. Falls back through when no mesh strategy
+    // is active.
+    const collider = this._ensureCollider();
+    if (collider.kind === 'mesh' && (fx !== 0 || fz !== 0)) {
+      const capsuleRadius = this._eyeOffset / 3;
+      const sweep = bvhCapsuleSweep(
+        collider.bvh,
+        [pos.x, pos.y - this._eyeOffset, pos.z],
+        [nx,    pos.y - this._eyeOffset, nz],
+        capsuleRadius, this._eyeOffset,
+      );
+      nx = sweep.endX;
+      nz = sweep.endZ;
+    }
 
     // soft clamp to scene bounds (Tier-2 "walls"). Fly mode keeps walls too —
     // they keep the user from drifting infinitely off-scene.
