@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added — Collision editor
+
+- Extract a triangle mesh from the loaded splat via marching cubes on a
+  64³ voxel-density grid (Bourke's 256-case lookup tables, embedded
+  verbatim — zero runtime dependencies).
+- Voxel-brush editor with Add / Remove tools, quadratic-falloff sphere
+  brush, drag-to-paint, and an iso-threshold slider for live surface
+  tuning. Per-stroke undo ring (depth 8).
+- Mesh BVH with two-sided Möller-Trumbore raycast (for brush picking)
+  and a capsule-sweep query for walking-mode horizontal collision.
+- Walking-mode `setCollider()` strategy switch — mesh collider gives
+  real walls and overhangs; falls back to the existing heightmap when
+  the mesh has gaps.
+- Export `.obj` (triangulated, with normals) and a JSON sidecar
+  (`<name>.collision.json`) with RLE-packed 8-bit quantised density
+  so the same collider can be re-attached on the next page load.
+- New stage-controls button `⬛ Collider` toggles the editor; right-rail
+  toolbar on desktop, bottom-sheet on mobile.
+
 ## [1.1.1] — 2026-05-26
 
 ### Added

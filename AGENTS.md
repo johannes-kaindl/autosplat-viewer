@@ -59,6 +59,13 @@ runtime from the jsDelivr CDN.
 - **Walking-mode** (`js/walking.js`, `js/heightmap.js`,
   `js/controls.js`) is loaded lazily via dynamic import in
   `viewer.js#enterWalking` — not part of the initial shell.
+- **Collision editor** (`js/collision/*.js`) is loaded lazily via
+  dynamic import in `viewer.js#enterCollisionEditor` — not part of
+  the initial shell. The editor owns a 64³ voxel-density grid and
+  runs marching cubes (Bourke tables in `mc-tables.js`) to produce
+  a translucent two-sided mesh overlay. `walking.js#setCollider()`
+  can opt in to using the mesh as the active collider; the heightmap
+  remains the fallback when the mesh has gaps.
 - **Mobile / iOS:** fullscreen on iPhone Safari uses a CSS pseudo-
   fullscreen fallback (`body.fs-fallback`), since Mobile Safari has
   no Fullscreen API for non-`<video>` elements. Safe-area-inset

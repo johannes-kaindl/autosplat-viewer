@@ -88,7 +88,12 @@ For full per-release notes see [`CHANGELOG.md`](CHANGELOG.md).
 - **Walking-mode** — first-person walk-through with WASD + mouse-look
   (pointer-lock), heightmap collision built in-browser from the splat's
   own point cloud
-- **Drag-and-drop** or file-picker for your own `.ply` splats
+- **Collision editor** — extract a triangle mesh from the splat (marching
+  cubes on a 64³ voxel-density grid), voxel-brush-edit it (Add / Remove /
+  Iso slider), export as `.obj`, save/reload via JSON sidecar. Can replace
+  the heightmap as the walking-mode collider — gives you real walls.
+- **Drag-and-drop** or file-picker for your own `.ply` splats (or a
+  `.collision.json` sidecar to re-attach a saved collision mesh)
 - **Fullscreen mode** — distraction-free, intro overlay hidden; on iPhone
   Safari a CSS pseudo-fullscreen fallback fills the gap left by missing
   Fullscreen API support for non-`<video>` elements
