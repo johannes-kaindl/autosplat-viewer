@@ -32,6 +32,28 @@
           <button id="walk-btn-fly"  aria-label="Toggle fly mode">✈</button>
         </div>
       </div>
+
+      <aside id="collision-toolbar" hidden aria-label="Collision editor">
+        <h3>Collision editor</h3>
+        <button id="coll-build" type="button">Build from splats</button>
+        <fieldset>
+          <legend>Tool</legend>
+          <label><input type="radio" name="coll-tool" value="view" checked> View</label>
+          <label><input type="radio" name="coll-tool" value="add"> Add</label>
+          <label><input type="radio" name="coll-tool" value="remove"> Remove</label>
+        </fieldset>
+        <label>Brush <input id="coll-brush" type="range" min="0.05" max="2" step="0.05" value="0.3"></label>
+        <label>Iso <input id="coll-iso" type="range" min="0.5" max="8" step="0.1" value="1.5"></label>
+        <div class="coll-row">
+          <button id="coll-undo" type="button">Undo</button>
+          <button id="coll-reset" type="button">Reset</button>
+        </div>
+        <div class="coll-row">
+          <button id="coll-export-obj" type="button">Export .obj</button>
+          <button id="coll-save" type="button">Save .json</button>
+        </div>
+        <p id="coll-status" aria-live="polite">No mesh.</p>
+      </aside>
     </section>
   </main>
 </body>
