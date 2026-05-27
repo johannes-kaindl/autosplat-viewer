@@ -107,4 +107,46 @@ export class HUD {
     this._eyeTimer = setTimeout(() => this.eyeText.classList.remove('is-visible'),
                                 EYE_OVERLAY_MS);
   }
+
+  // ---------- Collision editor ----------
+
+  enterCollisionUI(handlers) {
+    this._collisionHandlers = handlers;
+    const t = this.stage.querySelector('#collision-toolbar');
+    if (!t) return;
+    t.hidden = false;
+    if (!this._collisionWired) {
+      t.querySelector('#coll-build')?.addEventListener('click', () => handlers.onBuild?.());
+      t.querySelector('#coll-undo')?.addEventListener('click', () => handlers.onUndo?.());
+      t.querySelector('#coll-reset')?.addEventListener('click', () => handlers.onReset?.());
+      t.querySelector('#coll-export-obj')?.addEventListener('click', () => handlers.onExportObj?.());
+      t.querySelector('#coll-save')?.addEventListener('click', () => handlers.onSaveSidecar?.());
+      t.querySelector('#coll-iso')?.addEventListener('input', (e) =>
+        handlers.onIsoChange?.(parseFloat(e.target.value)));
+      t.querySelectorAll('input[name="coll-tool"]').forEach((r) =>
+        r.addEventListener('change', (e) => handlers.onToolChange?.(e.target.value)));
+      this._collisionWired = true;
+    }
+  }
+
+  exitCollisionUI() {
+    const t = this.stage.querySelector('#collision-toolbar');
+    if (t) t.hidden = true;
+    this._collisionHandlers = null;
+  }
+
+  setCollisionStatus(text) {
+    const s = this.stage.querySelector('#coll-status');
+    if (s) s.textContent = text;
+  }
+
+  getCollisionTool() {
+    const r = this.stage.querySelector('input[name="coll-tool"]:checked');
+    return r?.value ?? 'view';
+  }
+
+  getCollisionBrushSize() {
+    const r = this.stage.querySelector('#coll-brush');
+    return r ? parseFloat(r.value) : 0.3;
+  }
 }

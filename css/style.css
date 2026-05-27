@@ -213,3 +213,56 @@ footer a { color: var(--muted); }
   #walk-controls-hint { font-size: 0.72rem; bottom: 1rem; max-width: 92vw; }
   #walk-touch-buttons button { width: 3.2rem; height: 3.2rem; font-size: 1.2rem; }
 }
+
+/* Collision editor toolbar */
+#collision-toolbar {
+  position: absolute;
+  right: max(env(safe-area-inset-right), 1rem);
+  top: 5rem;
+  width: 18rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.8rem;
+  background: rgba(14, 15, 19, 0.92);
+  color: #d8dee9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.5rem;
+  font: 0.85rem/1.4 system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  z-index: 5;
+}
+#collision-toolbar h3 { margin: 0 0 0.25rem; font-size: 0.95rem; }
+#collision-toolbar fieldset {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.3rem;
+  display: flex; gap: 0.6rem; flex-wrap: wrap;
+}
+#collision-toolbar fieldset legend { padding: 0 0.3rem; }
+#collision-toolbar label { display: flex; align-items: center; gap: 0.35rem; }
+#collision-toolbar .coll-row { display: flex; gap: 0.5rem; }
+#collision-toolbar .coll-row button { flex: 1; }
+#collision-toolbar button {
+  padding: 0.4rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+#collision-toolbar button:hover { background: rgba(255, 255, 255, 0.1); }
+#collision-toolbar #coll-status {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+@media (max-width: 600px) {
+  #collision-toolbar {
+    right: 0; left: 0; bottom: 0; top: auto;
+    width: 100%; max-width: 100%;
+    border-radius: 0.5rem 0.5rem 0 0;
+    padding-bottom: max(env(safe-area-inset-bottom), 0.8rem);
+  }
+}
