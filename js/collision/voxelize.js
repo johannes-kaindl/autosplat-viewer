@@ -63,3 +63,20 @@ export function smoothDensity(density, resolution) {
   }
   return out;
 }
+
+/**
+ * Pick an iso threshold that survives both dense (church demo) and sparse
+ * (outdoor) scans. Returns max(1.5, median(non-zero) * 0.5). 1.5 means
+ * "more than one splat per cell after blur" — a useful baseline that avoids
+ * meshing pure noise.
+ */
+export function defaultIso(density) {
+  const nz = [];
+  for (let i = 0; i < density.length; i++) {
+    if (density[i] > 0) nz.push(density[i]);
+  }
+  if (nz.length === 0) return 1.5;
+  nz.sort((a, b) => a - b);
+  const median = nz[Math.floor((nz.length - 1) / 2)];
+  return Math.max(1.5, median * 0.5);
+}

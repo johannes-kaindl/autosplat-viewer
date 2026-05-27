@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { voxelize, smoothDensity } from '../../js/collision/voxelize.js';
+import { voxelize, smoothDensity, defaultIso } from '../../js/collision/voxelize.js';
 
 const bounds10 = { min: { x: 0, y: 0, z: 0 }, max: { x: 10, y: 10, z: 10 } };
 
@@ -50,4 +50,22 @@ test('smoothDensity: single non-zero cell spreads to 3x3x3 neighbourhood', () =>
 test('smoothDensity: empty grid stays empty', () => {
   const out = smoothDensity(new Float32Array(64), 4);
   for (const v of out) assert.equal(v, 0);
+});
+
+test('defaultIso: empty grid → 1.5 fallback', () => {
+  assert.equal(defaultIso(new Float32Array(64)), 1.5);
+});
+
+test('defaultIso: 50th-percentile of non-zero × 0.5, floored at 1.5', () => {
+  const density = new Float32Array(100);
+  for (let i = 0; i < 10; i++) density[i] = i + 1;
+  // median of [1..10] sorted = nz[Math.floor(9/2)] = nz[4] = 5 → * 0.5 = 2.5
+  assert.equal(defaultIso(density), 2.5);
+});
+
+test('defaultIso: small values → falls back to 1.5', () => {
+  const density = new Float32Array(10);
+  density[0] = 1; density[1] = 2;
+  // median = nz[Math.floor(1/2)] = nz[0] = 1, * 0.5 = 0.5 → max(1.5, 0.5) = 1.5
+  assert.equal(defaultIso(density), 1.5);
 });
