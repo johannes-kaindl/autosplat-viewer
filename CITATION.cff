@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+message: "If you use this software in academic or research work, please cite it as below."
+title: "autosplat-viewer — static browser viewer PWA for 3D Gaussian Splats"
+abstract: >
+  A zero-dependency static viewer Progressive Web App that renders trained
+  3D Gaussian Splats (.ply and compressed .sog) directly in the browser via
+  the PlayCanvas Engine. Features include auto-orbit camera, drag-and-drop
+  of user splats, a first-person walking-mode with in-browser heightmap
+  collision built from the splat's own point cloud, full mobile/iOS support
+  (virtual joystick, safe-area handling, pseudo-fullscreen fallback), and
+  an installable offline-capable app shell. Vanilla HTML/CSS/JS, no build
+  step, no server, no upload — all rendering is local. Companion to the
+  autosplat video-to-splat pipeline.
+type: software
+authors:
+  - family-names: Kaindl
+    given-names: Johannes
+    email: code.jkaindl@mailbox.org
+    affiliation: Independent
+repository-code: "https://codeberg.org/jkaindl/autosplat-viewer"
+url: "https://jkaindl.codeberg.page/autosplat-viewer/"
+license: AGPL-3.0-or-later
+version: "1.1.1"
+date-released: "2026-05-26"
+keywords:
+  - gaussian-splatting
+  - gaussian-splat
+  - 3d-rendering
+  - viewer
+  - playcanvas
+  - webgl
+  - pwa
+  - progressive-web-app
+  - vanilla-js
+  - static-site
+  - service-worker
+  - offline-first
+  - ply
+  - sog
+  - first-person
+references:
+  - type: software
+    title: "autosplat — automated video-to-3D-Gaussian-Splat pipeline for Apple Silicon"
+    authors:
+      - family-names: Kaindl
+        given-names: Johannes
+    repository-code: "https://codeberg.org/jkaindl/video-to-3d-gaussian-splat"
+    license: AGPL-3.0-or-later
+  - type: software
+    title: "PlayCanvas Engine"
+    url: "https://github.com/playcanvas/engine"
+    license: MIT

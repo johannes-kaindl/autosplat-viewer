@@ -1,7 +1,7 @@
 {
   "name": "autosplat viewer",
   "short_name": "autosplat",
-  "description": "View 3D Gaussian Splats in the browser",
+  "description": "View 3D Gaussian Splats in the browser — orbit or walk through your own .ply splats. No upload, fully offline-capable.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

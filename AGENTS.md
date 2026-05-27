@@ -38,6 +38,18 @@ runtime from the jsDelivr CDN.
   `.claude/logs/YYYY-MM-DD-<topic>.md` — written at end-of-session
   by the `clean-shutdown` skill.
 
+## Repo meta files
+
+- `README.md` — entry point, mirrors `CHANGELOG.md` headline table.
+- `CHANGELOG.md` — Keep-a-Changelog format, every release adds an entry.
+- `CONTRIBUTING.md` — bug-report / PR / out-of-scope guidance.
+- `SECURITY.md` — reporting channel for security-sensitive issues.
+- `CITATION.cff` — academic citation block.
+- `.editorconfig` — 2-space indent (HTML/CSS/JS), LF, trim trailing
+  whitespace (except `.md`).
+- Codeberg repo metadata (description, website, topics) is set via
+  the Gitea API — see the `codeberg-release-workflow` memory.
+
 ## Architecture notes
 
 - **Service worker** (`service-worker.js`): same-origin shell uses
