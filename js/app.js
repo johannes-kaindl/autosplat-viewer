@@ -87,7 +87,19 @@ initDropzone({
   onFile: (file, badName) => {
     if (file) load(file);
     else showError(`Unsupported: ${badName} — only .ply is allowed`);
-  }
+  },
+  onSidecar: async (text) => {
+    if (!viewer.isCollisionEditor?.()) {
+      try { await viewer.enterCollisionEditor?.(); }
+      catch { showError('Load a splat before dropping a sidecar.'); return; }
+    }
+    const mode = viewer.getCollisionMode?.();
+    try { mode?.loadSidecar(text); }
+    catch (err) {
+      console.error('[collision] sidecar load failed:', err);
+      showError('Sidecar load failed — file format may be wrong.');
+    }
+  },
 });
 
 // ---------- Walking-mode wiring (slices 4–6) ----------
