@@ -149,12 +149,125 @@ viewer.onLoad?.(() => {
 
 // Re-acquire pointer-lock if it's lost while still in walking-mode (clicking
 // outside the canvas, alt-tab, etc.). The click itself is the user gesture
-// the browser needs to grant the lock again.
+// the browser needs to grant the lock again. Skipped when the collision
+// editor is active and the user is brushing — that path deliberately
+// releases the lock.
 document.getElementById('canvas-host')?.addEventListener('click', () => {
   if (viewer.isWalking?.() &&
       document.pointerLockElement !== document.querySelector('#canvas-host canvas')) {
+    const mode = viewer.getCollisionMode?.();
+    if (mode && mode._lockReleasedForBrush) return;
     document.querySelector('#canvas-host canvas')?.requestPointerLock?.();
   }
 });
+
+// ---------- Collision-editor wiring ----------
+
+const btnCollision = document.getElementById('btn-collision');
+const canvasHost = document.getElementById('canvas-host');
+let strokeActive = false;
+
+function syncCollisionButton() {
+  const on = viewer.isCollisionEditor?.();
+  btnCollision?.setAttribute('aria-pressed', String(!!on));
+  if (btnCollision) btnCollision.textContent = on ? '⬛ Exit collider' : '⬛ Collider';
+}
+
+btnCollision?.addEventListener('click', async () => {
+  if (viewer.isCollisionEditor?.()) {
+    viewer.exitCollisionEditor?.();
+    return;
+  }
+  try {
+    await viewer.enterCollisionEditor?.();
+  } catch (err) {
+    console.error('[collision] enter failed:', err);
+    showError('Load a splat before opening the collision editor.');
+  }
+});
+setInterval(syncCollisionButton, 500);
+
+viewer.onCollisionEnter?.(({ mode }) => {
+  hud.enterCollisionUI({
+    onBuild: () => {
+      if (!mode.build()) showError('No usable splat geometry to mesh.');
+    },
+    onUndo: () => mode.undo(),
+    onReset: () => mode.build(),
+    onExportObj: () => downloadString(mode.exportObj(), 'collider.obj', 'text/plain'),
+    onSaveSidecar: () => downloadString(mode.exportSidecar(), 'collider.collision.json', 'application/json'),
+    onIsoChange: (v) => mode.setIso(v),
+    onToolChange: (v) => {
+      if (v === 'add' || v === 'remove') {
+        if (document.pointerLockElement && document.exitPointerLock) {
+          mode._lockReleasedForBrush = true;
+          document.exitPointerLock();
+        }
+      } else {
+        mode._lockReleasedForBrush = false;
+      }
+    },
+  });
+  syncCollisionButton();
+});
+
+viewer.onCollisionExit?.(() => {
+  hud.exitCollisionUI();
+  syncCollisionButton();
+});
+
+viewer.onCollisionMeshBuilt?.(({ triCount, iso }) => {
+  hud.setCollisionStatus(`${triCount.toLocaleString()} tris · iso ${iso.toFixed(2)}`);
+});
+
+function strokeKindNow() {
+  const t = hud.getCollisionTool();
+  return (t === 'add' || t === 'remove') ? t : null;
+}
+
+canvasHost?.addEventListener('pointerdown', (e) => {
+  const mode = viewer.getCollisionMode?.();
+  if (!mode || !mode.editor) return;
+  const kind = strokeKindNow();
+  if (!kind) return;
+  e.preventDefault();
+  canvasHost.setPointerCapture?.(e.pointerId);
+  mode.editor.beginStroke(kind);
+  strokeActive = true;
+  mode.applyBrushAt(e.clientX, e.clientY, kind, hud.getCollisionBrushSize(), 3, true);
+});
+
+canvasHost?.addEventListener('pointermove', (e) => {
+  if (!strokeActive) return;
+  const mode = viewer.getCollisionMode?.();
+  if (!mode) return;
+  mode.applyBrushAt(e.clientX, e.clientY, strokeKindNow(), hud.getCollisionBrushSize(), 3, true);
+});
+
+function endStroke(e) {
+  if (!strokeActive) return;
+  strokeActive = false;
+  const mode = viewer.getCollisionMode?.();
+  if (mode && mode.editor) {
+    mode.editor.endStroke();
+    mode.rebuildMesh();
+  }
+  if (e?.pointerId != null) canvasHost?.releasePointerCapture?.(e.pointerId);
+}
+canvasHost?.addEventListener('pointerup', endStroke);
+canvasHost?.addEventListener('pointercancel', endStroke);
+
+function downloadString(text, filename, mime) {
+  if (text == null) return;
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 load(DEMO_URL, 'scene.sog');
