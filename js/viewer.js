@@ -89,10 +89,12 @@ export function createViewer(hostElement) {
     canvas.addEventListener(ev, () => { autoOrbit = false; });
   }
 
-  async function loadSplat(source, filename) {
+  async function loadSplat(source, filename, opts = {}) {
     await cameraReady;
     const isFile = source instanceof File;
-    const pose = isFile ? DEFAULT_POSE : DEMO_POSE;
+    // Delivery links (?src=) force the generic pose + auto-frame, so a
+    // client's splat is not framed with the church-tuned demo camera.
+    const pose = (opts.forceDefaultPose || isFile) ? DEFAULT_POSE : DEMO_POSE;
 
     let url = source;
     let name = filename;
@@ -133,8 +135,56 @@ export function createViewer(hostElement) {
 
     autoOrbit = true; // a freshly loaded splat always starts orbiting
 
+    if (opts.autoFrame) await autoFrameCamera();
+
     for (const fn of loadListeners) {
       try { fn({ splatEntity, splatPivot }); } catch (e) { console.error(e); }
+    }
+  }
+
+  // Robust auto-frame for arbitrary (client-delivered) splats: frame the
+  // camera from the splat CENTER positions (PC 2.x: gsplat._instance.resource
+  // .centers) using per-axis percentiles, so floater outliers don't blow up
+  // the framing. Falls back silently to the pose camera if positions are
+  // unavailable.
+  async function autoFrameCamera() {
+    const getCenters = () => {
+      const g = splatEntity && splatEntity.gsplat;
+      return (g && ((g._instance && g._instance.resource && g._instance.resource.centers) ||
+                    (g.instance && g.instance.resource && g.instance.resource.centers))) || null;
+    };
+    let centers = null;
+    for (let i = 0; i < 60 && !centers; i++) {
+      centers = getCenters();
+      if (!centers) await new Promise(r => requestAnimationFrame(r));
+    }
+    if (!centers) return;
+
+    const n = centers.length / 3;
+    const stepN = Math.max(1, Math.floor(n / 60000));
+    const xs = [], ys = [], zs = [];
+    for (let i = 0; i < n; i += stepN) {
+      xs.push(centers[i * 3]); ys.push(centers[i * 3 + 1]); zs.push(centers[i * 3 + 2]);
+    }
+    const pct = 0.025;
+    const q = (arr, t) => {
+      arr.sort((a, b) => a - b);
+      return arr[Math.min(arr.length - 1, Math.max(0, Math.floor(t * (arr.length - 1))))];
+    };
+    const lo = new Vec3(q(xs, pct), q(ys, pct), q(zs, pct));
+    const hi = new Vec3(q(xs, 1 - pct), q(ys, 1 - pct), q(zs, 1 - pct));
+
+    let center = new Vec3((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, (lo.z + hi.z) / 2);
+    center = splatEntity.getWorldTransform().transformPoint(center.clone());
+    const r = Math.max((hi.x - lo.x) / 2, (hi.y - lo.y) / 2, (hi.z - lo.z) / 2, 0.5);
+    const dist = r * 2.4;
+    const dir = new Vec3(0.8, 0.5, 0.8).normalize();
+    const camPos = new Vec3(center.x + dir.x * dist, center.y + dir.y * dist, center.z + dir.z * dist);
+    if (cc) {
+      cc.reset(center, camPos);
+    } else {
+      camera.setPosition(camPos);
+      camera.lookAt(center.x, center.y, center.z);
     }
   }
 

@@ -247,6 +247,15 @@ img, video { max-width: 100%; display: block; }
 .footer-links a { color: var(--muted); text-decoration: none; }
 .footer-links a:hover { color: var(--fg); }
 
+/* --- Legal pages (Impressum / Datenschutz) --- */
+.legal { max-width: 46rem; margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2rem); }
+.legal h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin-bottom: 1rem; letter-spacing: -0.01em; }
+.legal h2 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; }
+.legal p { color: #cdd0d9; font-size: 0.95rem; margin-bottom: 0.6rem; line-height: 1.6; }
+.legal p.muted { color: var(--muted); }
+.legal a { color: var(--accent-2); }
+
 /* --- Responsive --- */
 @media (max-width: 720px) {
   .proof-grid { grid-template-columns: 1fr; }

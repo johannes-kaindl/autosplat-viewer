@@ -1,7 +1,8 @@
-const SHELL = 'autosplat-shell-v8';
-const RUNTIME = 'autosplat-runtime-v8';
+const SHELL = 'autosplat-shell-v9';
+const RUNTIME = 'autosplat-runtime-v9';
 const SHELL_FILES = [
   './', './index.html', './viewer.html',
+  './impressum.html', './datenschutz.html',
   './css/landing.css', './css/style.css', './js/landing.js',
   './js/app.js', './js/viewer.js', './js/dropzone.js',
   './js/hud.js', './js/heightmap.js', './js/controls.js', './js/walking.js',

@@ -21,18 +21,18 @@ function showError(msg) {
   setTimeout(() => { errorBox.hidden = true; }, 5000);
 }
 
-async function load(source, filename) {
+async function load(source, filename, opts) {
   if (viewer.unsupported) return;
   errorBox.hidden = true;
   spinner.hidden = false;
   try {
-    await viewer.loadSplat(source, filename);
+    await viewer.loadSplat(source, filename, opts);
     // Honour the OS-level reduced-motion preference: each fresh load
     // resets autoOrbit to true inside the viewer; turn it back off
     // for users who don't want spontaneous motion.
     if (PREFERS_REDUCED_MOTION.matches) viewer.setAutoOrbit(false);
   } catch {
-    showError('Could not load the file — supported format: .ply');
+    showError('Could not load the splat.');
   } finally {
     spinner.hidden = true;
   }
@@ -291,4 +291,12 @@ function downloadString(text, filename, mime) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-load(DEMO_URL, 'scene.sog');
+// A ?src= query loads a hosted (client-delivered) splat instead of the demo —
+// auto-framed with a generic pose. Example: viewer.html?src=c/acme-haus.sog
+const srcParam = new URLSearchParams(location.search).get('src');
+if (srcParam) {
+  const name = srcParam.split('?')[0].split('/').pop() || 'scene.sog';
+  load(srcParam, name, { autoFrame: true, forceDefaultPose: true });
+} else {
+  load(DEMO_URL, 'scene.sog');
+}
