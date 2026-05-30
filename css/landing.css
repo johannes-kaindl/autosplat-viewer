@@ -172,6 +172,39 @@ img, video { max-width: 100%; display: block; }
   font-size: 0.85rem;
 }
 
+/* --- Selected-captures gallery --- */
+.gallery {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.1rem;
+}
+.shot {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+}
+.shot img {
+  width: 100%; aspect-ratio: 3 / 2; object-fit: cover;
+  border-bottom: 1px solid var(--border);
+}
+.shot-body { padding: 1rem 1.1rem 1.2rem; }
+.shot-body h3 { font-size: 1.02rem; margin: 0.5rem 0 0.3rem; }
+.shot-body p { color: var(--muted); font-size: 0.9rem; }
+.tag {
+  display: inline-block; font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 0.2rem 0.55rem; border-radius: 999px;
+  background: rgba(96, 128, 255, 0.16); color: var(--accent-2);
+  border: 1px solid rgba(96, 128, 255, 0.3);
+}
+.tag-rescue {
+  background: rgba(255, 140, 90, 0.16); color: #ffb088;
+  border-color: rgba(255, 140, 90, 0.35);
+}
+.shot-link {
+  display: inline-block; margin-top: 0.7rem; font-weight: 600;
+  font-size: 0.9rem; color: var(--accent-2); text-decoration: none;
+}
+.shot-link:hover { text-decoration: underline; }
+
 /* --- Steps --- */
 .steps {
   list-style: none; display: grid;

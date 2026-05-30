@@ -1,5 +1,5 @@
-const SHELL = 'autosplat-shell-v7';
-const RUNTIME = 'autosplat-runtime-v7';
+const SHELL = 'autosplat-shell-v8';
+const RUNTIME = 'autosplat-runtime-v8';
 const SHELL_FILES = [
   './', './index.html', './viewer.html',
   './css/landing.css', './css/style.css', './js/landing.js',
@@ -14,6 +14,7 @@ const SHELL_FILES = [
   './assets/max_strasse_autobisect_hero.webm',
   './assets/max_strasse_autobisect_hero_poster.jpg',
   './assets/max_strasse_autobisect_scene.jpg',
+  './assets/showcase-wasserturm.jpg', './assets/showcase-herkules.jpg',
   './icons/icon-192.png', './icons/icon-512.png'
 ];
 
