@@ -254,4 +254,11 @@ links to its own source — as required by AGPL §13.
 The PlayCanvas Engine is MIT-licensed and loaded as a separate
 component from a CDN.
 
+- **Commercial license** — autosplat-viewer is **dual-licensed**. If the
+  AGPL's copyleft and network-use obligations don't fit your use case — e.g.
+  a **proprietary / closed-source product** or an **Apple App Store build**
+  (App Store terms are incompatible with the AGPL) — a separate commercial
+  license is available. See [`LICENSING.md`](LICENSING.md) and the
+  [Contributor License Agreement](CLA.md) for how that's possible.
+
 Copyright © 2026 Johannes Kaindl. Licensed under AGPL-3.0-or-later.

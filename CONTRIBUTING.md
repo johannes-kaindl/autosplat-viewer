@@ -74,6 +74,21 @@ gitignored `tests/node_modules/` on first e2e run).
 
 For deeper agent-side conventions see [`AGENTS.md`](AGENTS.md).
 
+## License of contributions
+
+By opening a PR you agree to the [Contributor License Agreement](CLA.md): you
+keep your copyright, your contribution stays available under the project's
+open-source license, **and** you grant the maintainer the right to also
+license it under other terms — which keeps the project's
+[dual-licensing model](LICENSING.md) (AGPL + an optional commercial license)
+possible. To accept, add this line to your PR description (or as a
+`Signed-off-by:` trailer on your commits):
+
+> I have read and agree to the Contributor License Agreement (CLA.md).
+
+Under the open-source license, your contribution is published under the same
+license as the overall project: [AGPL-3.0-or-later](LICENSE).
+
 ## Out of scope
 
 - **Splat training / capture.** That's the [autosplat](https://codeberg.org/jkaindl/video-to-3d-gaussian-splat)
