@@ -1,3 +1,11 @@
+> # ⚠️ This repository has moved
+>
+> `autosplat-viewer` is now part of the **[autosplat](https://codeberg.org/jkaindl/autosplat)** monorepo,
+> under `viewer/`. This repository is **archived** (read-only) — development continues at
+> <https://codeberg.org/jkaindl/autosplat>.
+
+---
+
 # autosplat-viewer
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
